@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Sign Up</title>
+{% endblock %}
+
+{% block content %}
+
+<!-- Banner Section -->
+<div class="banner bg-primary text-white text-center py-5 mb-4">
+    <h1>Welcome to Our Store</h1>
+    <p>Create your account to start shopping!</p>
+</div>
+
+<div class="container">
+    <div class="col-6 m-5 px-5 mx-auto">
+        <div class="alert border rounded mb-4">
+            <h3>Create an Account</h3>
+        </div>
+
+        <form class="border p-4 rounded" action="/signup" method="POST">
+            {% csrf_token %}
+          
+
+            <!-- First Name -->
+            <div class="mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-control" name="firstname" required>
+            </div>
+
+            <!-- Last Name -->
+            <div class="mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-control" name="lastname" required>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="mb-3">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" class="form-control" name="phone" required>
+            </div>
+
+            <!-- Email Address -->
+            <div class="mb-3">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-control" name="email" required>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" name="password" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">Create Account</button>
+        </form>
+
+        <!-- Login Redirect -->
+        <div class="mt-4">
+            <p>Already have an account? <a href="{% url 'login' %}">Log in here</a>.</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+
+
+
+{% comment %} {% extends "base.html" %}
+{% block title %} 
+<title>Signup</title>
+{% endblock %}
+
+
+{% block content %} 
+
+
+<div class="container">
+    <div class="col-6 m-5 px-5 mx-auto">
+        <div class="alert border rounded "> <h3>Create an account</h3></div>
+
+        <form class="border p-2 px-4 rounded" action="/signup" method="POST" >
+            {% csrf_token %}
+
+         {% comment %} First name  {% endcomment %}
+            {% comment %} <div class="mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-control " id="" name='firstname' required >
+              </div>
+
+
+
+
+         
+
+              <div class="mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-control " id="" name='lastname' required >
+              </div>
+
+
+         
+
+         <div class="mb-3">
+            <label class="form-label">Phone Number</label>
+            <input type="Number" class="form-control " id=""  name='phone' required >
+          </div>     
+
+
+
+            <div class="mb-3">
+              <label class="form-label">Email address</label>
+              <input type="email" class="form-control " id="" name='email' required  >
+            </div>
+
+
+        
+            <div class="mb-3">
+              <label for="" class="form-label">Password</label>
+              <input type="password" class="form-control " id="" name='password' required >
+            </div>
+          
+            <button type="submit" class="btn btn-primary">Create Account</button>
+          </form>
+         
+         
+    </div>
+</div> {% endcomment %}
+

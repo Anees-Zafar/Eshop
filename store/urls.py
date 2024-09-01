@@ -1,0 +1,17 @@
+from django.urls import path
+from . import views
+from .middleware.auth import auth_middleware
+urlpatterns = [
+    path('', views.Index.as_view(), name='index'),
+    path('signup', views.Signup , name='signup'),
+    path('login', views.Login.as_view() , name='login'),
+    path('logout', views.logout , name='logout'),
+    path('cart', auth_middleware(views.cart) , name='cart'),
+    path('checkout', views.checkout , name='checkout'),
+    path('orders', views.orders , name='orders'),
+    path('male', views.Malecatageory.as_view() , name='male'),
+    path('female', views.Femalecatageory.as_view() , name='female'),
+    path('kid', views.Kidcatageory.as_view() , name='kid'),
+
+
+]

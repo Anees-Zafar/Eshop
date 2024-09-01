@@ -1,0 +1,295 @@
+from django.shortcuts import render ,redirect , HttpResponseRedirect
+from django.http import HttpResponse
+# Create your views here.
+from .models import *
+from django.contrib.auth.hashers import check_password, make_password
+from django.views import View
+from django.views.decorators.csrf import csrf_protect
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import requires_csrf_token
+
+
+
+
+@method_decorator(csrf_protect, name='dispatch')
+class Index(View):
+    def post(self , request):
+        productcome=request.POST.get('product')
+        removecome=request.POST.get('remove')
+        cart=request.session.get('cart')
+        if cart:
+            quantity=cart.get(productcome)
+            if quantity:
+                if removecome:
+                    if quantity<=1:
+                        cart.pop(productcome)
+                    else:
+                        cart[productcome] =quantity-1    
+                    
+
+                else:
+                    cart[productcome] =quantity+1    
+                  
+            else:
+                cart[productcome] =1     
+        else:
+            cart={}
+            cart[productcome]=1  
+
+        request.session['cart']=cart     
+        print ( cart)
+        return redirect('index')
+
+
+
+    def get(self , request):
+        if 'cart' not in request.session:
+            request.session['cart'] = {}
+        product = None
+        collection=Category.objects.all()
+        collectionid=request.GET.get('category')
+        if collectionid:
+            product=Products.get_all_products_by_id(collectionid)
+        else:
+            product=Products.objects.all()   
+
+        print ('you are:', request.session.get('email'))
+        context = {'product': product , 'category':collection}
+        return render(request, 'index.html', context)
+    
+
+
+@method_decorator(csrf_protect, name='dispatch')
+class Malecatageory(View):
+    def post(self , request):
+        productcome=request.POST.get('product')
+        removecome=request.POST.get('remove')
+        cart=request.session.get('cart')
+        if cart:
+            quantity=cart.get(productcome)
+            if quantity:
+                if removecome:
+                    if quantity<=1:
+                        cart.pop(productcome)
+                    else:
+                        cart[productcome] =quantity-1    
+                    
+
+                else:
+                    cart[productcome] =quantity+1    
+                  
+            else:
+                cart[productcome] =1     
+        else:
+            cart={}
+            cart[productcome]=1  
+
+        request.session['cart']=cart     
+        print ( cart)
+        return redirect('male')
+
+    def get(self , request):
+        items=Products.get_all_products_by_id(4)
+        # print(items)
+        return render(request, 'male.html', {'items':items})
+    
+
+
+
+
+@method_decorator(csrf_protect, name='dispatch')
+class Femalecatageory(View):
+    def post(self , request):
+        productcome=request.POST.get('product')
+        removecome=request.POST.get('remove')
+        cart=request.session.get('cart')
+        if cart:
+            quantity=cart.get(productcome)
+            if quantity:
+                if removecome:
+                    if quantity<=1:
+                        cart.pop(productcome)
+                    else:
+                        cart[productcome] =quantity-1    
+                    
+
+                else:
+                    cart[productcome] =quantity+1    
+                  
+            else:
+                cart[productcome] =1     
+        else:
+            cart={}
+            cart[productcome]=1  
+
+        request.session['cart']=cart     
+        print ( cart)
+        return redirect('female')
+
+    def get(self , request):
+        items=Products.get_all_products_by_id(3)
+        # print(items)
+        return render(request, 'female.html', {'items':items})
+
+
+
+@method_decorator(csrf_protect, name='dispatch')
+class Kidcatageory(View):
+    def post(self , request):
+        productcome=request.POST.get('product')
+        removecome=request.POST.get('remove')
+        cart=request.session.get('cart')
+        if cart:
+            quantity=cart.get(productcome)
+            if quantity:
+                if removecome:
+                    if quantity<=1:
+                        cart.pop(productcome)
+                    else:
+                        cart[productcome] =quantity-1    
+                    
+
+                else:
+                    cart[productcome] =quantity+1    
+                  
+            else:
+                cart[productcome] =1     
+        else:
+            cart={}
+            cart[productcome]=1  
+
+        request.session['cart']=cart     
+        print ( cart)
+        return redirect('kid')
+
+    def get(self , request):
+        items=Products.get_all_products_by_id(5)
+        # print(items)
+        return render(request, 'kid.html', {'items':items})
+
+
+# def detailsproject(request,product_id):
+#     detail=get_object_or_404(Product, pk=product_id)
+   
+#     context = {  'detail':detail }
+
+#     return render(request,'store/productdetail.html', context )
+
+@requires_csrf_token
+def Signup(request):
+    if request.method=='GET':
+        return render(request, 'signup.html')
+    else:
+        first_name=request.POST.get('firstname')
+        last_name=request.POST.get('lastname')
+        phone=request.POST.get('phone')
+        email=request.POST.get('email')
+        password=request.POST.get('password')
+        customer=Customer(
+                first_name=first_name,
+                last_name=last_name,
+                phone=phone,
+                email=email,
+                password=password,
+        )
+        customer.register()
+        return redirect('index')
+    
+
+@method_decorator(csrf_protect, name='dispatch')
+class Login(View):
+    return_url = None
+
+    def get(self , request):
+        Login.return_url = request.GET.get('return_url')
+        return render(request, 'login.html')
+        
+    def post(self , request):
+        postemail=request.POST.get('email')
+        password=request.POST.get('password')
+        # print (postemail, password )
+        customer=Customer.get_customer_by_email(postemail)
+        error_massage=None
+        if customer:
+            if password==customer.password:
+                request.session['customer_id']=customer.id
+                request.session['email']= customer.email
+
+                if Login.return_url:
+                    return HttpResponseRedirect(Login.return_url)
+                else:
+                    Login.return_url = None
+                    return redirect("index")
+                
+            else:
+                error_massage='Your email and password are invalid'
+        else:
+            error_massage='Your email and password are invalid'
+        context={'error':error_massage , 'email':postemail}
+        return render(request, 'login.html' , context)
+
+
+
+
+   
+    
+        
+   
+        
+            
+
+
+
+def logout(request):
+    request.session.clear()
+    return redirect('login')
+
+
+
+def cart(request):
+    ids=list(request.session.get('cart').keys())
+    cartproducts=Products.det_product_by_id(ids)
+    # print (cartproducts)
+    return render(request,'cart.html' , {'cartproducts': cartproducts}  )
+
+@requires_csrf_token
+def checkout(request):
+    
+    adress=request.POST.get('adress')
+    phone=request.POST.get('phone')
+    customero=request.session.get('customer_id')
+    cart=request.session.get('cart')
+    products=Products.det_product_by_id(list(cart.keys()))
+
+    print(adress,phone,customero,cart,products)
+
+    for product in products:
+        order= Order(
+            customer=Customer(id=customero),
+            product=product,
+            price=product.price,
+            adress=adress,
+            phone=phone,
+            quantity=cart.get(str(product.id))
+
+        )
+        order.save()
+    request.session['cart']={}   
+    # print(order) 
+
+    return redirect( 'orders')
+
+            
+            
+       
+def orders(request):
+    customerlogin = request.session.get('customer_id')
+    orderitems = Order.get_orders(customerlogin)
+    # for item in orderitems:
+        # print(f"Order: {item}, Status: {item.status}, Product: {item.product.name}")
+    return render(request, 'orders.html', {'orderitems': orderitems})
+
+
+
+
+    

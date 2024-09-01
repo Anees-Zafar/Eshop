@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}
+<title>Store</title>
+{% endblock %}
+{% load cart %}
+
+{% block content %}
+<!-- Banner Section -->
+<div class="container-fluid  text-white py-4 mb-4" style="background: linear-gradient(to right, mediumblue, lightblue); color: white;">
+    <div class="container">
+        <h1 class="text-center">Welcome to Our Store</h1>
+    </div>
+</div>
+
+<!-- Main Content Section -->
+<div class="container">
+    <div class="row">
+        <!-- Category Section -->
+        <div class="col-lg-3 mb-4">
+            <div class="list-group">
+                <a type="button" href="{% url 'index' %}" class="list-group-item list-group-item-action active">
+                    All Products
+                </a>
+                {% for items in category %}
+                <a type="button" href="/?category={{items.id}}" class="list-group-item list-group-item-action">
+                    {{items.name}}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Product Section -->
+        <div class="col-lg-9">
+            <div class="row">
+                {% for items in product %}
+                <div class="col-md-6 col-lg-4 mb-4 " id="{{items.id}}">
+                    <div class="card h-100 shadow-sm rounded">
+                        <img src="{{items.imageURL}}" class="card-img-top" alt="{{items.name}}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{items.name}}</h5>
+                            <p class="card-text text-muted">$ {{items.price}}</p>
+                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal{{items.id}}">
+                                View Details
+                            </button>
+                        </div>
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="modal{{items.id}}" tabindex="-1" aria-labelledby="modalLabel{{items.id}}" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalLabel{{items.id}}">Product Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="container">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <img src="{{items.imageURL}}" class="img-fluid" alt="{{items.name}}">
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <p><strong>Title:</strong> {{items.name}}</p>
+                                                    <p><strong>Price:</strong> $ {{items.price}}</p>
+                                                    <p><strong>Category:</strong> {{items.category}}</p>
+                                                    <p>{{items.description}}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add to Cart Section -->
+                        <div class="card-footer d-flex justify-content-between align-items-center no-gutter">
+                            {% if items|is_in_cart:request.session.cart %} 
+                            <div class="d-flex align-items-center ">
+                                <form action="/#{{items.id}}" method="POST" class="me-2">
+                                    {% csrf_token %}
+                                    <input hidden type="text" value="{{items.id}}" name="product">
+                                    <input hidden type="text" value="true" name="remove" class="form-control">
+                                    <input type="submit" class="btn btn-primary btn-sm" value="DEL -">
+                                </form>
+                                <span>{{items|cart_quantity:request.session.cart}} in cart</span>
+                                <form action="/#{{items.id}}" method="POST" class="ms-2">
+                                    {% csrf_token %}
+                                    <input hidden type="text" value="{{items.id}}" name="product" class="form-control">
+                                    <input type="submit" class="btn btn-primary btn-sm" value="ADD +">
+                                </form>
+                            </div>
+                            {% else %}
+                            <form action="/#{{items.id}}" method="POST" class="w-100">
+                                {% csrf_token %}
+                                <input hidden type="text" value="{{items.id}}" name="product" class="form-control">
+                                <input type="submit" class="btn btn-primary form-control" value="Add to cart">
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
