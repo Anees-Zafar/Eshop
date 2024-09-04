@@ -30,7 +30,39 @@
             </td>
             <td>{{ cartitems.name }}</td>
             <td>${{ cartitems.price }}</td>
-            <td>{{ cartitems|cart_quantity:request.session.cart }}</td>
+            {% comment %} <td>{{ cartitems|cart_quantity:request.session.cart }}</td> {% endcomment %}
+
+
+            <td>
+              {% if cartitems|is_in_cart:request.session.cart %}
+              <div class="d-flex align-items-center">
+                <!-- Decrease quantity button -->
+                <form action="cart#{{cartitems.id}}" method="POST" class="me-2">
+                  {% csrf_token %}
+                  <input hidden type="text" value="{{cartitems.id}}" name="product">
+                  <input hidden type="text" value="true" name="remove" class="form-control">
+                  <input type="submit" class="btn btn-secondary btn-sm" value="-">
+              </form>
+              <span>{{cartitems|cart_quantity:request.session.cart}}</span>
+              <form action="cart#{{cartitems.id}}" method="POST" class="ms-2">
+                  {% csrf_token %}
+                  <input hidden type="text" value="{{cartitems.id}}" name="product" class="form-control">
+                  <input type="submit" class="btn btn-secondary btn-sm" value="+">
+              </form>
+              </div>
+              {% endif %}
+            </td>
+
+
+
+
+
+
+
+
+
+
+
             <td>${{ cartitems|price_total:request.session.cart }}</td>
           </tr>
           {% endfor %}
@@ -40,14 +72,18 @@
     <div class="col-3">
       <div class="border p-4 rounded text-center bg-light shadow-sm">
         <h4 class="mb-4">Total: ${{ cartproducts|cart_total:request.session.cart }}</h4>
-        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#checkoutModal">Go to Checkout</button>
+        {% comment %} <a class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#exampleModal" ></a> {% endcomment %}
+
+        <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#exampleModal">
+          Go to Checkout
+        </button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Checkout Modal -->
-<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header bg-dark text-white">
@@ -65,7 +101,12 @@
             <label for="phone" class="form-label">Phone Number</label>
             <input type="text" class="form-control" id="phone" name="phone" required>
           </div>
-          <button type="submit" class="btn btn-dark w-100">Checkout</button>
+          <div class="box-element " id="payment-info">
+            <small>Complete Payment</small>
+            <div id="paypal-button-container"></div>
+          </div>
+
+          <button type="submit" class="btn btn-dark w-100" >Checkout</button>
         </form>
       </div>
       <div class="modal-footer">
@@ -74,4 +115,47 @@
     </div>
   </div>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://www.paypal.com/sdk/js?client-id=AcHOeVGLdhKoz93PsPOFTPlnI4ZhTJ2Vo-lah8v7YGE0H4_0zkMwAjhQbIQGY35W4nCoAtjGModm0Sc9&currency=USD"></script>
+
+
+<script>
+    // Render the PayPal button into #paypal-button-container
+    var totalPrice = "{{ cartproducts|cart_total:request.session.cart }}";
+    paypal.Buttons({
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: totalPrice  // Replace with the actual amount
+                    }
+                }]
+            });
+        },
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+                alert('Transaction completed by ' + details.payer.name.given_name);
+               document.getElementById('paypal-button-container').innerHTML = '<h3>Thank you for your payment!</h3>';
+
+                // Prevent the default behavior of opening a new tab/window
+                return false; 
+            });
+        }
+    }).render('#paypal-button-container');
+</script>
+
 {% endblock %}

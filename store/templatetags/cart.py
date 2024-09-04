@@ -52,3 +52,12 @@ def cart_total_quantity(cart):
             total_quantity += quantity
         return total_quantity
     return 0 
+
+
+
+@register.filter(name='is_on_cart')
+def is_on_cart(product, cart):
+    product_id = str(product.id)
+    if product_id in cart:
+        return True
+    return False

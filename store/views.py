@@ -1,6 +1,5 @@
 from django.shortcuts import render ,redirect , HttpResponseRedirect
 from django.http import HttpResponse
-# Create your views here.
 from .models import *
 from django.contrib.auth.hashers import check_password, make_password
 from django.views import View
@@ -38,7 +37,7 @@ class Index(View):
 
         request.session['cart']=cart     
         print ( cart)
-        return redirect('index')
+        return redirect(f'/#{productcome}')
 
 
 
@@ -168,12 +167,7 @@ class Kidcatageory(View):
         return render(request, 'kid.html', {'items':items})
 
 
-# def detailsproject(request,product_id):
-#     detail=get_object_or_404(Product, pk=product_id)
-   
-#     context = {  'detail':detail }
 
-#     return render(request,'store/productdetail.html', context )
 
 @requires_csrf_token
 def Signup(request):
@@ -245,41 +239,91 @@ def logout(request):
     return redirect('login')
 
 
-
+@requires_csrf_token
 def cart(request):
-    ids=list(request.session.get('cart').keys())
-    cartproducts=Products.det_product_by_id(ids)
-    # print (cartproducts)
-    return render(request,'cart.html' , {'cartproducts': cartproducts}  )
+    if request.method=='GET':
+        ids=list(request.session.get('cart').keys())
+        cartproducts=Products.det_product_by_id(ids)
+        return render(request,'cart.html' , {'cartproducts': cartproducts}  )
+    else:
+        productcome=request.POST.get('product')
+        removecome=request.POST.get('remove')
+        cart=request.session.get('cart')
+        if cart:
+            quantity=cart.get(productcome)
+            if quantity:
+                if removecome:
+                    if quantity<=1:
+                        cart.pop(productcome)
+                    else:
+                        cart[productcome] =quantity-1    
+                    
+
+                else:
+                    cart[productcome] =quantity+1    
+                  
+            else:
+                cart[productcome] =1     
+        else:
+            cart={}
+            cart[productcome]=1  
+
+        request.session['cart']=cart     
+        print ( cart)
+        return redirect('cart')
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
 
 @requires_csrf_token
 def checkout(request):
     
-    adress=request.POST.get('adress')
-    phone=request.POST.get('phone')
-    customero=request.session.get('customer_id')
-    cart=request.session.get('cart')
-    products=Products.det_product_by_id(list(cart.keys()))
 
-    print(adress,phone,customero,cart,products)
+    if request.method == 'POST':
+        adress = request.POST.get('adress')
+        phone = request.POST.get('phone')
+        customer_id = request.session.get('customer_id')
+        cart = request.session.get('cart')
+        products = Products.det_product_by_id(list(cart.keys()))
 
-    for product in products:
-        order= Order(
-            customer=Customer(id=customero),
-            product=product,
-            price=product.price,
-            adress=adress,
-            phone=phone,
-            quantity=cart.get(str(product.id))
+        print(adress, phone, customer_id, cart, products)
 
-        )
+        # Create orders for each product in the cart
+        
+        for product in products:
+            order = Order(
+                customer=Customer(id=customer_id),
+                product=product,
+                price=product.price,
+                adress=adress,
+                phone=phone,
+                quantity=cart.get(str(product.id))
+            )
         order.save()
-    request.session['cart']={}   
-    # print(order) 
+        request.session['cart'] = {}  
+        return redirect('orders')  
+      
+    
+        
 
-    return redirect( 'orders')
+        # Clear the cart
+        
 
-            
+
+
+
+
             
        
 def orders(request):
@@ -291,5 +335,17 @@ def orders(request):
 
 
 
+def paypalpage(request):
+    return render(request , 'paypal.html')
 
-    
+
+
+def paypal_success(request):
+    return HttpResponse("Payment completed successfully!")
+
+def paypal_failed(request):
+    return HttpResponse("Payment failed. Please try again.")
+
+
+
+

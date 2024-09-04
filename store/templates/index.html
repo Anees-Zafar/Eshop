@@ -78,21 +78,21 @@
                         <div class="card-footer d-flex justify-content-between align-items-center no-gutter">
                             {% if items|is_in_cart:request.session.cart %} 
                             <div class="d-flex align-items-center ">
-                                <form action="/#{{items.id}}" method="POST" class="me-2">
+                                <form action="/" method="POST" class="me-2">
                                     {% csrf_token %}
                                     <input hidden type="text" value="{{items.id}}" name="product">
                                     <input hidden type="text" value="true" name="remove" class="form-control">
                                     <input type="submit" class="btn btn-primary btn-sm" value="DEL -">
                                 </form>
                                 <span>{{items|cart_quantity:request.session.cart}} in cart</span>
-                                <form action="/#{{items.id}}" method="POST" class="ms-2">
+                                <form action="/" method="POST" class="ms-2">
                                     {% csrf_token %}
                                     <input hidden type="text" value="{{items.id}}" name="product" class="form-control">
                                     <input type="submit" class="btn btn-primary btn-sm" value="ADD +">
                                 </form>
                             </div>
                             {% else %}
-                            <form action="/#{{items.id}}" method="POST" class="w-100">
+                            <form action="/" method="POST" class="w-100">
                                 {% csrf_token %}
                                 <input hidden type="text" value="{{items.id}}" name="product" class="form-control">
                                 <input type="submit" class="btn btn-primary form-control" value="Add to cart">
