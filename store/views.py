@@ -411,3 +411,12 @@ def delete(request , id ):
     Todo.objects.get(pk=id).delete()
     return redirect('todo')
 
+
+
+def change(request , id ):
+    todo=Todo.objects.get(pk=id)
+    todo.status = True
+    todo.save()
+    print(todo.status)
+    return redirect('todo')
+

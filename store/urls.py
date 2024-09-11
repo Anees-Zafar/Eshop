@@ -18,6 +18,8 @@ urlpatterns = [
     # path('paypal/', include("paypal.standard.ipn.urls")),
     path('todo', views.todo, name='todo'),
     path('delete/<int:id>', views.delete, name='delete'),
+    path('change/<int:id>', views.change, name='change'),
+
 
 
 
