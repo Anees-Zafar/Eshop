@@ -185,9 +185,46 @@ def Signup(request):
                 phone=phone,
                 email=email,
                 password=password,
-        )
-        customer.register()
-        return redirect('index')
+            )
+
+        values={
+            'first_name':first_name,
+            'last_name':last_name,
+            'phone':phone,
+            'email':email,
+        }
+
+    #  Form validation 
+        error=None 
+
+        if not first_name:
+            error='First name is required'
+        elif len(first_name)<4 :
+            error='First name is must be grater than 4 digits'
+        elif not last_name:
+            error='Last name is required'
+        elif len(last_name)<4 :
+            error='Last name is must be grater than 4 digits'    
+        elif not phone:
+            error='Phone number is required'
+        elif len(phone)<10 :
+            error='Phone number is must be grater than 11 digits'
+        elif not email:
+            error='Email is required'  
+        elif customer.isExist():  # Correct way to call the instance method
+            error = 'This Email ID already exists'          
+
+        if not error:
+            customer.password=make_password(customer.password)
+            customer.register()
+            return redirect('login')
+        else:
+            return render (request , 'signup.html', {'error': error , 'values':values})
+
+
+
+
+        
     
 
 @method_decorator(csrf_protect, name='dispatch')
@@ -205,7 +242,8 @@ class Login(View):
         customer=Customer.get_customer_by_email(postemail)
         error_massage=None
         if customer:
-            if password==customer.password:
+            flag= check_password(password , customer.password)
+            if flag:
                 request.session['customer_id']=customer.id
                 request.session['email']= customer.email
 
@@ -348,4 +386,28 @@ def paypal_failed(request):
 
 
 
+def todo(request):
+    if request.method=='GET':
+        customerlogin = request.session.get('customer_id')
+        todoitems=Todo.get_todos(customerlogin)
+        return render(request , 'todo.html' , {'todoitems':todoitems})
+    else:
+        title=request.POST.get('title')
+        description=request.POST.get('description')
+        customer_id = request.session.get('customer_id')
+       
+        todo=Todo(
+                title=title,
+                description=description,
+                customer_id=customer_id,
+                
+            )
+        todo.save()
+        return redirect('todo') 
+    
+
+
+def delete(request , id ):
+    Todo.objects.get(pk=id).delete()
+    return redirect('todo')
 

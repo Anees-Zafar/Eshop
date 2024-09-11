@@ -54,7 +54,12 @@ class Customer(models.Model):
 
     
     def register(self):
-        self.save()		
+        self.save()	
+
+
+
+    def isExist(self):
+        return Customer.objects.filter(email=self.email).exists()   
 
 
 
@@ -90,4 +95,22 @@ class Order(models.Model):
         return Order.objects.filter(customer = customer_id).order_by('-date')
 
 
-		
+
+
+
+class Todo(models.Model):
+    customer=models.ForeignKey(Customer, on_delete=models.CASCADE)
+    title=models.CharField(max_length=500 , default="")
+    description=models.CharField(max_length=500 , default="")
+    status=models.BooleanField(default=False)
+    date=models.DateField(default=datetime.datetime.today)
+
+
+
+    def __str__(self):
+        return str(self.customer)
+    
+
+    @staticmethod
+    def get_todos(customer_id):
+        return Todo.objects.filter(customer = customer_id).order_by('-date')

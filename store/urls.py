@@ -16,6 +16,8 @@ urlpatterns = [
     path('paypal/success/', views.paypal_success, name='paypal_success'),
     path('paypal/failed/', views.paypal_failed, name='paypal_failed'),
     # path('paypal/', include("paypal.standard.ipn.urls")),
+    path('todo', views.todo, name='todo'),
+    path('delete/<int:id>', views.delete, name='delete'),
 
 
 
