@@ -15,9 +15,48 @@
        .hidden{
         display: none!important;
     }
+
+    /* Preloader styling */
+#preloader {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background-color: #fff; /* Change this to match your website's theme */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Spinner animation */
+.spinner {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+/* Animation for the spinner */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
     </style>
 </head>
 <body>
+
+
+    <!-- Preloader HTML -->
+<div id="preloader">
+    <div class="spinner"></div>
+</div>
+
+
+
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <!-- Logo -->
@@ -49,9 +88,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'kid' %}">Kids</a>
                     </li>
+                    {% if request.session.customer_id %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'todo' %}">TODOS</a>
                     </li>
+                    {% endif %}
                    
                 </ul>
                 
@@ -86,6 +127,24 @@
 
     {% block content %}
     {% endblock %}
+
+
+    <script>
+        // Wait until the entire page is loaded
+        window.addEventListener('load', function () {
+            // Get the preloader element by its ID
+            var preloader = document.getElementById('preloader');
+            
+            // Add a fade-out effect (optional)
+            preloader.style.transition = 'opacity 3s ease';
+            preloader.style.opacity = '0';
+            
+            // After the transition, completely remove the preloader
+            setTimeout(function () {
+                preloader.style.display = 'none';
+            }, 500);  // Match the duration with the transition time (0.5s)
+        });
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
