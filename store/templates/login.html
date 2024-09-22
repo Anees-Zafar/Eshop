@@ -22,21 +22,24 @@
                     
                     {% if error %}
                     <div class="alert alert-danger">{{ error }}</div>
+                    <span id="emailError" class="text-danger"></span>
                     {% endif %}
                     
-                    <form action="/login" method="POST">
+                    <form id="loginForm" method="POST">
                         {% csrf_token %}
                         
                         <!-- Email Address -->
                         <div class="mb-3">
                             <label class="form-label">Email Address</label>
-                            <input type="email" class="form-control" name="email" required value="{{ email }}">
+                            <input type="email" id="email" class="form-control" name="email" required value="{{ email }}">
+                            <div id="emailError" class="text-danger"></div>
                         </div>
                         
                         <!-- Password -->
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <input type="password" class="form-control" name="password" required>
+                            <input type="password" id="password" class="form-control" name="password" required>
+                            <div id="passwordError" class="text-danger"></div>
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100">Log In</button>
@@ -51,51 +54,77 @@
     </div>
 </div>
 
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+
+    function getCSRFToken() {
+        let cookieValue = null;
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith('csrftoken=')) {
+                cookieValue = cookie.substring('csrftoken='.length);
+                break;
+            }
+        }
+        return cookieValue;
+    }
+    
+    
+$(document).ready(function() {
+    $('#loginForm').on('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        // Clear previous error messages
+        $('#emailError').text('');
+        $('#passwordError').text('');
+
+        // Get form values
+        let email = $('#email').val();
+        let password = $('#password').val();
+        let csrfToken = getCSRFToken();
+
+        // Perform basic validation
+        let isValid = true;
+        if (!email) {
+            $('#emailError').text('Email is required.');
+            isValid = false;
+        }
+        if (!password) {
+            $('#passwordError').text('Password is required.');
+            isValid = false;
+        }
+
+        if (isValid) {
+            $.ajax({
+                type: 'POST',
+                url: '{% url "login" %}', // Update the URL to your Django view URL for validation
+                data: {
+                    'email': email,
+                    'password': password,
+                    'csrfmiddlewaretoken': csrfToken
+                },
+                success: function(response) {
+                    if (response.success) {
+                        window.location.href = response.redirect_url; // Redirect on success
+                    } else {
+                        if (response.error) {
+                            $('#emailError').text(response.error); // Display server-side error message
+                        }
+                    }
+                },
+                error: function() {
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        }
+    });
+});
+</script>
 {% endblock %}
 
 
 
-
-{% comment %} {% extends "base.html" %}
-{% block title %} 
-<title>Signup</title>
-{% endblock %}
-
-
-{% block content %} 
-
-
-<div class="container">
-    <div class="col-6 m-5 px-5 mx-auto">
-        <div class="alert border rounded "> <h3>Login to your account</h3></div>
-
-        <form class="border p-2 px-4 rounded" action="/login" method="POST">
-          {% csrf_token %}
-          {% if error %}
-          <div class="alert border rounded alert-danger "> {{error}}</div>
-
-          {% endif %}
-
-
-
-         {% comment %} Email Adress  {% endcomment %}
-            {% comment %} <div class="mb-3">
-              <label class="form-label">Email address</label>
-              <input type="email" class="form-control " id="" name='email' required value={{email}} >
-            </div>
-
-
-        
-            {% comment %} Password {% endcomment %}
-            {% comment %} <div class="mb-3">
-              <label for="" class="form-label">Password</label>
-              <input type="password" class="form-control " id="" name='password' required >
-            </div>
-          
-            <button type="submit" class="btn btn-primary">Log-In</button>
-          </form>
-         
-         
-    </div>
-</div> {% endcomment %}
 

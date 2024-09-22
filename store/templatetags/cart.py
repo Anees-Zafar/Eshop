@@ -6,10 +6,19 @@ register = template.Library()
 @register.filter(name='is_in_cart')
 def is_in_cart(product , cart):
     key=cart.keys()
-    # print(key)
     for id in key:
         if int(id)==product.id:
             return True
+        
+    return False
+
+@register.filter(name='is_in_cart')
+def is_exist_cart(product , cart):
+    key=cart.keys()
+    
+    if key:
+        return True
+           
         
     return False
 
@@ -17,7 +26,6 @@ def is_in_cart(product , cart):
 @register.filter(name='cart_quantity')
 def cart_quantity(product , cart):
     key=cart.keys()
-    # print(key)
     for id in key:
         if int(id)==product.id:
             return cart.get(id)
@@ -46,7 +54,7 @@ def order_product_total(num1,num2):
     
 @register.filter(name='cart_total_quantity')
 def cart_total_quantity(cart):
-    if isinstance(cart, dict):  # Ensure cart is a dictionary
+    if isinstance(cart, dict):  
         total_quantity = 0
         for quantity in cart.values():
             total_quantity += quantity

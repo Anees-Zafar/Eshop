@@ -17,8 +17,54 @@
         <div class="alert border rounded mb-4">
             <h3>Create an Account</h3>
         </div>
+        <form id="signupForm" class="border p-4 rounded" action="/signup" method="POST">
+            {% csrf_token %}
+        
+            {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+        
+            <!-- First Name -->
+            <div class="mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" id="firstName" class="form-control" name="firstname" value='{{values.first_name}}' required >
+                <span id="firstNameError" class="text-danger"></span>
+            </div>
+        
+            <!-- Last Name -->
+            <div class="mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" id="lastName" class="form-control" name="lastname" value='{{values.last_name}}' required>
+                <span id="lastNameError" class="text-danger"></span>
+            </div>
+        
+            <!-- Phone Number -->
+            <div class="mb-3">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" id="phone" class="form-control" name="phone" value='{{values.phone}}' required>
+                <span id="phoneError" class="text-danger"></span>
+            </div>
+        
+            <!-- Email Address -->
+            <div class="mb-3">
+                <label class="form-label">Email Address</label>
+                <input type="email" id="email" class="form-control" name="email" value='{{values.email}}' required>
+                <span id="emailError" class="text-danger"></span>
+            </div>
+        
+            <!-- Password -->
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" id="password" class="form-control" name="password" required>
+                <span id="passwordError" class="text-danger"></span>
+            </div>
+        
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">Create Account</button>
+        </form>
+        
 
-        <form class="border p-4 rounded" action="/signup" method="POST">
+        {% comment %} <form class="border p-4 rounded" action="/signup" method="POST">
             {% csrf_token %}
 
             {% if error %}
@@ -58,7 +104,7 @@
 
             <!-- Submit Button -->
             <button type="submit" class="btn btn-primary">Create Account</button>
-        </form>
+        </form> {% endcomment %}
 
         <!-- Login Redirect -->
         <div class="mt-4">
@@ -67,70 +113,121 @@
     </div>
 </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+  // Function to get CSRF token from the cookie
+function getCSRFToken() {
+    let cookieValue = null;
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith('csrftoken=')) {
+            cookieValue = cookie.substring('csrftoken='.length);
+            break;
+        }
+    }
+    return cookieValue;
+}
+
+// Add CSRF token to the headers in AJAX request
+document.getElementById('signupForm').addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent default form submission
+
+    let isValid = true;
+
+    // Clear previous error messages
+    document.getElementById('firstNameError').innerText = '';
+    document.getElementById('lastNameError').innerText = '';
+    document.getElementById('phoneError').innerText = '';
+    document.getElementById('emailError').innerText = '';
+    document.getElementById('passwordError').innerText = '';
+
+    // Get form values
+    let firstName = document.getElementById('firstName').value.trim();
+    let lastName = document.getElementById('lastName').value.trim();
+    let phone = document.getElementById('phone').value.trim();
+    let email = document.getElementById('email').value.trim();
+    let password = document.getElementById('password').value.trim();
+
+    // Validate input fields (similar to previous code)
+    // Validate First Name
+    if (firstName.length < 2) {
+        document.getElementById('firstNameError').innerText = 'First name must be at least 2 characters.';
+        isValid = false;
+    }
+
+    // Validate Last Name
+    if (lastName.length < 2) {
+        document.getElementById('lastNameError').innerText = 'Last name must be at least 2 characters.';
+        isValid = false;
+    }
+
+    // Validate Phone (simple pattern check)
+    let phonePattern = /^[0-9]{10}$/; // Example for 10-digit numbers
+    if (!phonePattern.test(phone)) {
+        document.getElementById('phoneError').innerText = 'Please enter a valid 10-digit phone number.';
+        isValid = false;
+    }
+
+    // Validate Email (simple pattern check)
+    let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    if (!emailPattern.test(email)) {
+        document.getElementById('emailError').innerText = 'Please enter a valid email address.';
+        isValid = false;
+    }
+
+    // Validate Password
+    if (password.length < 8) {
+        document.getElementById('passwordError').innerText = 'Password must be at least 8 characters.';
+        isValid = false;
+    }
+
+    // If client-side validation passes, perform AJAX request to validate email uniqueness
+    if (isValid) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '/check-email', true); // Django URL to check email
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('X-CSRFToken', getCSRFToken()); // Include CSRF token
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    let response = JSON.parse(xhr.responseText);
+                    if (response.emailExists) {
+                        document.getElementById('emailError').innerText = 'Email already taken.';
+                    } else {
+                        document.getElementById('signupForm').submit(); // Submit the form if email is valid
+                    }
+                }
+            }
+        };
+
+        xhr.send(JSON.stringify({ email: email }));
+    }
+});
+
+    
+</script>
+
 {% endblock %}
 
 
 
 
 
-{% comment %} {% extends "base.html" %}
-{% block title %} 
-<title>Signup</title>
-{% endblock %}
-
-
-{% block content %} 
-
-
-<div class="container">
-    <div class="col-6 m-5 px-5 mx-auto">
-        <div class="alert border rounded "> <h3>Create an account</h3></div>
-
-        <form class="border p-2 px-4 rounded" action="/signup" method="POST" >
-            {% csrf_token %}
-
-         {% comment %} First name  {% endcomment %}
-            {% comment %} <div class="mb-3">
-                <label class="form-label">First Name</label>
-                <input type="text" class="form-control " id="" name='firstname' required >
-              </div>
 
 
 
-
-         
-
-              <div class="mb-3">
-                <label class="form-label">Last Name</label>
-                <input type="text" class="form-control " id="" name='lastname' required >
-              </div>
-
-
-         
-
-         <div class="mb-3">
-            <label class="form-label">Phone Number</label>
-            <input type="Number" class="form-control " id=""  name='phone' required >
-          </div>     
-
-
-
-            <div class="mb-3">
-              <label class="form-label">Email address</label>
-              <input type="email" class="form-control " id="" name='email' required  >
-            </div>
-
-
-        
-            <div class="mb-3">
-              <label for="" class="form-label">Password</label>
-              <input type="password" class="form-control " id="" name='password' required >
-            </div>
-          
-            <button type="submit" class="btn btn-primary">Create Account</button>
-          </form>
-         
-         
-    </div>
-</div> {% endcomment %}
 

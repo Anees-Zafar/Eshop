@@ -1,12 +1,12 @@
 from django.shortcuts import render ,redirect , HttpResponseRedirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from .models import *
 from django.contrib.auth.hashers import check_password, make_password
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import requires_csrf_token
-
+import json
 
 
 
@@ -88,8 +88,8 @@ class Malecatageory(View):
         return redirect('male')
 
     def get(self , request):
-        items=Products.get_all_products_by_id(4)
-        # print(items)
+        items=Products.get_all_products_by_id(1)
+        
         return render(request, 'male.html', {'items':items})
     
 
@@ -126,8 +126,8 @@ class Femalecatageory(View):
         return redirect('female')
 
     def get(self , request):
-        items=Products.get_all_products_by_id(3)
-        # print(items)
+        items=Products.get_all_products_by_id(2)
+       
         return render(request, 'female.html', {'items':items})
 
 
@@ -162,8 +162,7 @@ class Kidcatageory(View):
         return redirect('kid')
 
     def get(self , request):
-        items=Products.get_all_products_by_id(5)
-        # print(items)
+        items=Products.get_all_products_by_id(3)
         return render(request, 'kid.html', {'items':items})
 
 
@@ -194,25 +193,25 @@ def Signup(request):
             'email':email,
         }
 
-    #  Form validation 
+    # #  Form validation 
         error=None 
 
-        if not first_name:
-            error='First name is required'
-        elif len(first_name)<4 :
-            error='First name is must be grater than 4 digits'
-        elif not last_name:
-            error='Last name is required'
-        elif len(last_name)<4 :
-            error='Last name is must be grater than 4 digits'    
-        elif not phone:
-            error='Phone number is required'
-        elif len(phone)<10 :
-            error='Phone number is must be grater than 11 digits'
-        elif not email:
-            error='Email is required'  
-        elif customer.isExist():  # Correct way to call the instance method
-            error = 'This Email ID already exists'          
+    #     if not first_name:
+    #         error='First name is required'
+    #     elif len(first_name)<4 :
+    #         error='First name is must be grater than 4 digits'
+    #     elif not last_name:
+    #         error='Last name is required'
+    #     elif len(last_name)<4 :
+    #         error='Last name is must be grater than 4 digits'    
+    #     elif not phone:
+    #         error='Phone number is required'
+    #     elif len(phone)<10 :
+    #         error='Phone number is must be grater than 11 digits'
+    #     elif not email:
+    #         error='Email is required'  
+    #     elif customer.isExist():  
+    #         error = 'This Email ID already exists'          
 
         if not error:
             customer.password=make_password(customer.password)
@@ -222,7 +221,14 @@ def Signup(request):
             return render (request , 'signup.html', {'error': error , 'values':values})
 
 
-
+def check_email(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data.get('email')
+        if Customer.objects.filter(email=email).exists():
+            return JsonResponse({'emailExists': True})
+        else:
+            return JsonResponse({'emailExists': False})
 
         
     
@@ -236,35 +242,52 @@ class Login(View):
         return render(request, 'login.html')
         
     def post(self , request):
-        postemail=request.POST.get('email')
-        password=request.POST.get('password')
-        # print (postemail, password )
-        customer=Customer.get_customer_by_email(postemail)
-        error_massage=None
-        if customer:
-            flag= check_password(password , customer.password)
-            if flag:
-                request.session['customer_id']=customer.id
-                request.session['email']= customer.email
+        if request.method == 'POST':
+            email = request.POST.get('email')
+            password = request.POST.get('password')
 
-                if Login.return_url:
-                    return HttpResponseRedirect(Login.return_url)
+            customer = Customer.get_customer_by_email(email)
+            if customer:
+                if check_password(password, customer.password):
+                    request.session['customer_id'] = customer.id
+                    request.session['email'] = customer.email
+                    if Login.return_url:
+                        # response= HttpResponseRedirect(Login.return_url)
+                        return JsonResponse({'success': True, 'redirect_url': Login.return_url})
+                    
+                    else:
+                        Login.return_url = None
+                        # return redirect("index")
+                        return JsonResponse({'success': True, 'redirect_url': '/'})  # Redirect to home on success
                 else:
-                    Login.return_url = None
-                    return redirect("index")
-                
+                    return JsonResponse({'success': False, 'error': 'Invalid email or password.'})
             else:
-                error_massage='Your email and password are invalid'
-        else:
-            error_massage='Your email and password are invalid'
-        context={'error':error_massage , 'email':postemail}
-        return render(request, 'login.html' , context)
-
+                return JsonResponse({'success': False, 'error': 'Invalid email or password.'})
+        return JsonResponse({'success': False, 'error': 'Invalid request.'})
 
 
 
    
-    
+# def check_login(request):
+#     if request.method == 'POST':
+#         email = request.POST.get('email')
+#         password = request.POST.get('password')
+
+#         customer = Customer.get_customer_by_email(email)
+#         if customer:
+#             if check_password(password, customer.password):
+#                 request.session['customer_id'] = customer.id
+#                 request.session['email'] = customer.email
+#                 if Login.return_url:
+#                     return HttpResponseRedirect(Login.return_url)
+#                 else:
+#                     Login.return_url = None
+#                     return redirect("index")  # Redirect to home on success
+#             else:
+#                 return JsonResponse({'success': False, 'error': 'Invalid email or password.'})
+#         else:
+#             return JsonResponse({'success': False, 'error': 'Invalid email or password.'})
+#     return JsonResponse({'success': False, 'error': 'Invalid request.'})
         
    
         
@@ -337,7 +360,6 @@ def checkout(request):
 
         print(adress, phone, customer_id, cart, products)
 
-        # Create orders for each product in the cart
         
         for product in products:
             order = Order(
@@ -348,14 +370,17 @@ def checkout(request):
                 phone=phone,
                 quantity=cart.get(str(product.id))
             )
-        order.save()
-        request.session['cart'] = {}  
+            order.save()
+        request.session['cart'] = {} 
+        if request.session.modified:
+             print (True)  
+
+       
         return redirect('orders')  
       
     
         
 
-        # Clear the cart
         
 
 
@@ -367,8 +392,6 @@ def checkout(request):
 def orders(request):
     customerlogin = request.session.get('customer_id')
     orderitems = Order.get_orders(customerlogin)
-    # for item in orderitems:
-        # print(f"Order: {item}, Status: {item.status}, Product: {item.product.name}")
     return render(request, 'orders.html', {'orderitems': orderitems})
 
 

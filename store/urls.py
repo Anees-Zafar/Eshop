@@ -2,6 +2,7 @@ from django.urls import path , include
 from . import views
 from .middleware.auth import auth_middleware
 urlpatterns = [
+         
     path('', views.Index.as_view(), name='index'),
     path('signup', views.Signup , name='signup'),
     path('login', views.Login.as_view() , name='login'),
@@ -19,8 +20,9 @@ urlpatterns = [
     path('todo', views.todo, name='todo'),
     path('delete/<int:id>', views.delete, name='delete'),
     path('change/<int:id>', views.change, name='change'),
+    path('check-email', views.check_email, name='check_email'),
+    # path('check-login', views.check_login, name='check_login'),
 
 
 
-
-]
+ ]
