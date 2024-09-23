@@ -73,7 +73,7 @@
                                 </div>
                             </div>
                         </div>
-
+                  
                         <!-- Add to Cart Section -->
                         <div class="card-footer d-flex justify-content-between align-items-center no-gutter">
                             {% if items|is_in_cart:request.session.cart %} 
@@ -91,7 +91,7 @@
                                     <input type="submit" class="btn btn-primary btn-sm" value="ADD +">
                                 </form>
                             </div>
-                            {% else %}
+                              {% else %}  
                             <form action="/" method="POST" class="w-100">
                                 {% csrf_token %}
                                 <input hidden type="text" value="{{items.id}}" name="product" class="form-control">

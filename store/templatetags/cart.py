@@ -6,21 +6,25 @@ register = template.Library()
 @register.filter(name='is_in_cart')
 def is_in_cart(product , cart):
     key=cart.keys()
+    
     for id in key:
+        
         if int(id)==product.id:
             return True
+        else:
+            return False
         
-    return False
-
-@register.filter(name='is_in_cart')
-def is_exist_cart(product , cart):
-    key=cart.keys()
     
-    if key:
-        return True
+
+# @register.filter(name='is_in_cart')
+# def is_exist_cart(product , cart):
+#     key=cart.keys()
+    
+#     if key:
+#         return True
            
         
-    return False
+#     return False
 
 
 @register.filter(name='cart_quantity')

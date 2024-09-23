@@ -53,6 +53,7 @@ class Index(View):
             product=Products.objects.all()   
 
         print ('you are:', request.session.get('email'))
+        print(request.session['cart'])
         context = {'product': product , 'category':collection}
         return render(request, 'index.html', context)
     
