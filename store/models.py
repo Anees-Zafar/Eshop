@@ -94,7 +94,15 @@ class Order(models.Model):
         return Order.objects.filter(customer = customer_id).order_by('-date')
 
 
+class Profile(models.Model):
+    customer=models.ForeignKey(Customer, on_delete=models.CASCADE)
+    cover_photo=models.ImageField(upload_to='uploadedimages/')
+    profile_photo=models.ImageField(upload_to='uploadedimages/')
+    address = models.CharField(max_length=255, blank=True, null=True)
+    about = models.CharField(max_length=500,blank=True, null=True)
 
+    def __str__(self):
+        return str(self.customer)
 
 
 class Todo(models.Model):

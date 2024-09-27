@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% load static %}
+{% load cart %}
+
+{% block title %}
+<title>Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+    
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+    
+        .profile-header {
+            position: relative;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 20px;
+        }
+    
+        .cover-photo {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    
+        .cover-photo-edit,
+        .profile-photo-edit {
+            height: 35px;
+            width: 35px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: white;
+            transition: background-color 0.3s;
+        }
+    
+        .cover-photo-edit {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    
+        .profile-photo-edit {
+            position: absolute;
+            top: 370px; /* Adjusted to align with profile photo */
+            left: 60%;
+            transform: translateX(-50%);
+        }
+    
+        .profile-photo {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -75px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    
+        .profile-info {
+            margin-top: 80px;
+            text-align: center;
+        }
+    
+        .profile-info h1 {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+    
+        .edit-profile {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+    
+        form {
+            display: inline-block;
+            text-align: left;
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    
+        .form-group {
+            margin-bottom: 20px;
+        }
+    
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+    
+        input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    
+        button:hover {
+            background-color: #218838;
+        }
+    
+        .file-input {
+            display: none;
+        }
+    
+        @media (max-width: 768px) {
+            .profile-photo {
+                width: 120px;
+                height: 120px;
+                bottom: -60px;
+            }
+    
+            .profile-info h1 {
+                font-size: 20px;
+            }
+    
+            .cover-photo {
+                height: 200px; /* Adjust cover photo height */
+            }
+    
+            .cover-photo-edit,
+            .profile-photo-edit {
+                height: 30px;
+                width: 30px;
+            }
+            .profile-photo-edit{
+                top:240px;
+            }
+    
+            .profile-info {
+                margin-top: 60px; /* Adjust for smaller screens */
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-header">
+
+        {% if prodata %}
+        <img id="cover-pic" src="{{ prodata.cover_photo.url }}" alt="Cover Photo" class="cover-photo">
+    {% else %}
+    <img id="cover-pic" src="{% static '/images/eshop-profile-cover-photo.jpg' %}" alt="Cover Photo" class="cover-photo">
+    {% endif %}
+
+
+        <label for="cover-photo" class="cover-photo-edit">
+            <i class="fas fa-camera"></i>
+        </label>
+
+
+        {% if prodata %}
+        <img id="profile-pic" src="{{ prodata.profile_photo.url }}" alt="Profile Photo" class="profile-photo">
+        {% else %}
+        <img id="profile-pic" src="{% static '/images/profile-photo.jpg' %}" alt="Profile Photo" class="profile-photo">
+        {% endif %}
+
+
+        <label for="profile-photo" class="profile-photo-edit">
+            <i class="fas fa-camera"></i>
+        </label>
+    </div>
+
+    <div class="profile-info">
+        <h1>{{ customer.first_name }} {{ customer.last_name }}</h1>
+        <p>{{ customer.email }}</p>
+        {% comment %} <p>{{ customer.about }}</p> {% endcomment %}
+    </div>
+
+    <div class="edit-profile">
+        <form method="POST" action='/profileeditpage' id="profile-form">
+            {% csrf_token %}
+            <input type="file" id="cover-photo" class="file-input" accept="image/*" name="cover_photo">
+            <input type="file" id="profile-photo" class="file-input" accept="image/*" name="profile_photo">
+
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" class="form-control" name="address" required value="{{ prodata.address }}">
+            </div>
+            <div class="form-group">
+                <label for="about">About</label>
+                <input type="text" id="about" class="form-control" name="about" required value="{{ prodata.about }}">
+            </div>
+            <button type="submit">Update Profile</button>
+        </form>
+    </div>
+</div>
+<script>
+    document.getElementById("cover-photo").addEventListener("change", function() {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("cover-pic").src = e.target.result;
+        };
+        reader.readAsDataURL(this.files[0]);
+    });
+
+    document.getElementById("profile-photo").addEventListener("change", function() {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("profile-pic").src = e.target.result;
+        };
+        reader.readAsDataURL(this.files[0]);
+    });
+
+    document.getElementById("profile-form").addEventListener("submit", function(e) {
+        e.preventDefault(); // Prevent the default form submission
+    
+        // Create a new FormData object
+        var formData = new FormData();
+    
+        // Append the files from the file inputs to the formData
+        var coverPhoto = document.getElementById("cover-photo").files[0];
+        var profilePhoto = document.getElementById("profile-photo").files[0];
+        if (coverPhoto) {
+            formData.append("cover_photo", coverPhoto);
+        }
+        if (profilePhoto) {
+            formData.append("profile_photo", profilePhoto);
+        }
+    
+        // Append the other form fields (address and about)
+        formData.append("address", document.getElementById("address").value);
+        formData.append("about", document.getElementById("about").value);
+    
+        // Append the CSRF token
+        formData.append("csrfmiddlewaretoken", document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+        // Send the AJAX request
+        fetch("/profileeditpage", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Profile updated successfully!");
+                window.location.href = '{% url "customerprofile" %}';
+            } else {
+                alert("Error updating profile: " + data.error);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("There was an error updating your profile.");
+        });
+    });
+</script>
+{% endblock %}

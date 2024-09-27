@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Email Information</title>
+
+
+
+<style>
+    /* The lightbox overlay */
+    .lightbox-overlay {
+        display: none; /* Hidden by default */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.2); /* Black overlay with transparency */
+        z-index: 1000;
+    }
+
+    /* Lightbox content box */
+    .lightbox-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        width: 400px;
+        max-width: 90%;
+        margin: 15% auto; /* Centering the lightbox */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        text-align: center;
+    }
+
+    /* Close button (X) */
+    .close-lightbox {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        cursor: pointer;
+        color: #333;
+    }
+
+    /* Lightbox transition effect */
+    .lightbox-overlay.active {
+        display: block; /* Show the lightbox */
+    }
+</style>
+{% endblock %}
+
+
+
+{% block content %}
+
+
+
+<div id="lightboxOverlay" class="lightbox-overlay active">
+    <div class="lightbox-content">
+        <span class="close-lightbox">&times;</span>
+        <h5>Password Reset Email Sent</h5>
+        <p>A link to reset your password has been sent to your registered email address.</p>
+        <p>Please check your email and follow the instructions to reset your password.</p>
+        <p>If you don't see the email, check your spam or junk folder.</p>
+        <a class="btn btn-primary" href='login'>Back to Login</a>
+    </div>
+</div>
+
+
+
+
+
+<!-- JavaScript for closing the lightbox -->
+<script>
+    function closeLightbox() {
+        document.getElementById("lightboxOverlay").classList.remove("active");
+    }
+
+    // Close lightbox when 'X' is clicked
+    document.querySelector('.close-lightbox').addEventListener('click', closeLightbox);
+
+    // Close lightbox when user clicks outside the content area
+    window.addEventListener('click', function(event) {
+        const lightbox = document.getElementById("lightboxOverlay");
+        if (event.target === lightbox) {
+            closeLightbox();
+        }
+    });
+</script>
+
+{% endblock %}

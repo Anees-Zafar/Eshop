@@ -5,6 +5,8 @@
 {% load cart %}
 
 {% block content %}
+
+<div id="success-message" style="display: none; color: green;">Cart updated!</div>
 <!-- Banner Section -->
 <div class="container-fluid  text-white py-4 mb-4" style="background: linear-gradient(to right, mediumblue, lightblue); color: white;">
     <div class="container">
@@ -42,6 +44,7 @@
                             <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal{{items.id}}">
                                 View Details
                             </button>
+                            <span id="cart-total"></span>
                         </div>
 
                         <!-- Modal -->
@@ -78,7 +81,7 @@
                         <div class="card-footer d-flex justify-content-between align-items-center no-gutter">
                             {% if items|is_in_cart:request.session.cart %} 
                             <div class="d-flex align-items-center ">
-                                <form action="/" method="POST" class="me-2">
+                               <form action="/" method="POST" class="me-2">
                                     {% csrf_token %}
                                     <input hidden type="text" value="{{items.id}}" name="product">
                                     <input hidden type="text" value="true" name="remove" class="form-control">
@@ -89,7 +92,9 @@
                                     {% csrf_token %}
                                     <input hidden type="text" value="{{items.id}}" name="product" class="form-control">
                                     <input type="submit" class="btn btn-primary btn-sm" value="ADD +">
-                                </form>
+                                    {% comment %} {{items|cart_quantity:request.session.cart}} in cart {% endcomment %}
+                                </form> 
+                              
                             </div>
                               {% else %}  
                             <form action="/" method="POST" class="w-100">
@@ -106,4 +111,6 @@
         </div>
     </div>
 </div>
+
+
 {% endblock %}

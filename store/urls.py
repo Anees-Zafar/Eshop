@@ -22,7 +22,12 @@ urlpatterns = [
     path('change/<int:id>', views.change, name='change'),
     path('check-email', views.check_email, name='check_email'),
     # path('check-login', views.check_login, name='check_login'),
-
-
+    # path('update_cart/', views.update_cart, name='update_cart'),
+    path('sendingemail', views.sendingemail, name='sendingemail'),
+    path('infoemailsend', views.infoemailsend, name='infoemailsend'),
+    path('resetpassform/<int:id>', views.resetpassform, name='resetpassform'),
+    path('customerprofile', views.customerprofile, name='customerprofile'),
+    path('profileeditpage', views.profileeditpage , name='profileeditpage'),
+    path('profiledeletepage', views.profiledeletepage , name='profiledeletepage')
 
  ]

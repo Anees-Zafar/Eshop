@@ -11,8 +11,8 @@ def is_in_cart(product , cart):
         
         if int(id)==product.id:
             return True
-        else:
-            return False
+        
+    return False
         
     
 

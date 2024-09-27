@@ -2,6 +2,9 @@
 
 {% block title %}
 <title>Login</title>
+
+
+
 {% endblock %}
 
 {% block content %}
@@ -44,8 +47,11 @@
                         
                         <button type="submit" class="btn btn-primary w-100">Log In</button>
                     </form>
+                    <div class="mt-1 ">
+                        <a href="" data-bs-toggle="modal" data-bs-target="#exampleModal" >Forgot Password?</a>
+                    </div>
                     
-                    <div class="text-center mt-3">
+                    <div class="text-center mt-1">
                         <p>Don't have an account? <a href="{% url 'signup' %}" class="btn btn-link">Create Account</a></p>
                     </div>
                 </div>
@@ -53,6 +59,42 @@
         </div>
     </div>
 </div>
+
+
+{% comment %} forget email modal  {% endcomment %}
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title" id="checkoutModalLabel">Account Recovery Proccess</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form method="POST" action="/sendingemail" id="emailform"  >
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="address" class="form-label">Type Your Registred Email</label>
+              <input type="email" id="secondemail" class="form-control" name="email" required >
+              <div id="notregister" class="text-danger"></div>
+            </div>
+            
+           
+  
+            <button type="submit" class="btn btn-dark w-100" >Send Email</button>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+ 
+
 
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -98,6 +140,7 @@ $(document).ready(function() {
         }
 
         if (isValid) {
+            $('#loadingOverlay1').show();
             $.ajax({
                 type: 'POST',
                 url: '{% url "login" %}', // Update the URL to your Django view URL for validation
@@ -107,6 +150,7 @@ $(document).ready(function() {
                     'csrfmiddlewaretoken': csrfToken
                 },
                 success: function(response) {
+                    $('#loadingOverlay1').hide();
                     if (response.success) {
                         window.location.href = response.redirect_url; // Redirect on success
                     } else {
@@ -116,6 +160,58 @@ $(document).ready(function() {
                     }
                 },
                 error: function() {
+                    $('#loadingOverlay1').hide();
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        }
+    });
+});
+</script>
+<script>
+
+   
+    
+$(document).ready(function() {
+    $('#emailform').on('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        // Clear previous error messages
+        $('#notregister').text('');
+
+        // Get form values
+        let emailagain = $('#secondemail').val();
+        let csrfToken = getCSRFToken();
+
+        // Perform basic validation
+        let isValid = true;
+        if (!emailagain) {
+            $('#notregister').text('Email is required.');
+            isValid = false;
+        }
+      
+
+        if (isValid) {
+            $('#loadingOverlay1').show();
+            $.ajax({
+                type: 'POST',
+                url: '{% url "sendingemail" %}', // Update the URL to your Django view URL for validation
+                data: {
+                    'email': emailagain,
+                    'csrfmiddlewaretoken': csrfToken
+                },
+                success: function(response) {
+                    $('#loadingOverlay1').hide();
+                    if (response.success) {
+                        window.location.href = response.redirect_url; // Redirect on success
+                    } else {
+                        if (response.error) {
+                            $('#notregister').text(response.error); // Display server-side error message
+                        }
+                    }
+                },
+                error: function() {
+                    $('#loadingOverlay1').hide();
                     alert('An error occurred. Please try again.');
                 }
             });

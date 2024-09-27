@@ -1,0 +1,133 @@
+
+
+{% extends "base.html" %}
+
+{% load cart %}
+
+{% block title %}
+<title>Reset Password</title>
+{% endblock %}
+
+
+
+
+ {% block content %}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-light shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Set New Password</h3>
+
+                    <div id="errorAlert" class="alert alert-danger" style="display:none;"></div>
+                    <div id="successAlert" class="alert alert-success" style="display:none;"></div>
+
+                    <form id="passwordResetForm" method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- New Password -->
+                        <div class="mb-3">
+                            <label class="form-label" for="new_password1">New Password</label>
+                            <input type="password" id="new_password1" class="form-control" name="new_password1" required>
+                            <div id="newPasswordError" class="text-danger"></div>
+                        </div>
+
+                        <!-- Confirm New Password -->
+                        <div class="mb-3">
+                            <label class="form-label" for="new_password2">Confirm New Password</label>
+                            <input type="password" id="new_password2" class="form-control" name="new_password2" required>
+                            <div id="confirmPasswordError" class="text-danger"></div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Reset Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+ <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('passwordResetForm');
+        const newPassword = document.getElementById('new_password1');
+        const confirmPassword = document.getElementById('new_password2');
+        const errorAlert = document.getElementById('errorAlert');
+        const successAlert = document.getElementById('successAlert');
+        const newPasswordError = document.getElementById('newPasswordError');
+        const confirmPasswordError = document.getElementById('confirmPasswordError');
+    
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form from submitting the default way
+            clearErrors();
+    
+            // Validate passwords
+            let isValid = true;
+            if (newPassword.value === '') {
+                newPasswordError.textContent = 'New password is required.';
+                isValid = false;
+            }
+            if (confirmPassword.value === '') {
+                confirmPasswordError.textContent = 'Please confirm your new password.';
+                isValid = false;
+            }
+            if (newPassword.value !== confirmPassword.value) {
+                confirmPasswordError.textContent = 'Passwords do not match.';
+                isValid = false;
+            }
+    
+            // If the form is valid, proceed with Ajax submission
+            if (isValid) {
+                submitFormAjax();
+            }
+        });
+    
+        function clearErrors() {
+            newPasswordError.textContent = '';
+            confirmPasswordError.textContent = '';
+            errorAlert.style.display = 'none';
+            successAlert.style.display = 'none';
+        }
+    
+        function submitFormAjax() {
+            const csrfToken = '{{ csrf_token }}';  // Use the Django template tag to insert CSRF token
+            const formData = new FormData(form); // Create FormData object to hold form data
+    
+            // Perform the AJAX request
+            fetch('{% url "resetpassform" id=user_id  %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successAlert.textContent = 'Password reset successful! Redirecting...';
+                    successAlert.style.display = 'block';
+                    setTimeout(function() {
+                        window.location.href = '{% url "login" %}'; // Redirect to login after success
+                    }, 2000); // Delay for user to see success message
+                } else {
+                    errorAlert.textContent = data.error || 'An error occurred while resetting the password.';
+                    errorAlert.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorAlert.textContent = 'An unexpected error occurred. Please try again later.';
+                errorAlert.style.display = 'block';
+            });
+        }
+    });
+    </script> 
+
+
+{% endblock %} 
