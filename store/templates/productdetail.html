@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Product Details</title>
+
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-6 col-md-12">
+            <!-- Product Image -->
+            <img src="{{ detail.imageURL }}" alt="{{ detail.name }}" class="img-fluid rounded shadow-lg w-100" style="max-height: 500px; object-fit: cover;">
+        </div>
+        <div class="col-lg-6 col-md-12 mt-4 mt-lg-0">
+            <h2 class="mb-3">{{ detail.name }}</h2>
+            <h4 class="text-danger mb-3 product-price">${{ detail.productattribute_set.first.price }}</h4>
+
+            <!-- Color Selection -->
+            <p><strong>Color:</strong></p>
+            <ul class='colorflex'>
+                {% for items in color %}
+                    <li>
+                        <button class='btn choose-color' data-color="{{ items.color__id }}" style="background-color:{{ items.color__color_code }};"></button>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <!-- Size Selection -->
+            <p><strong>Size:</strong></p>
+            <ul class=' sizeflex'>
+                {% for items in size %}
+                    <li>
+                        <button data-price="{{ items.price }}" class='btn btn-outline-dark mt-2 choose-size color{{ items.color__id }}'>{{ items.size__title }}</button>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <p><strong>Category:</strong> {{ detail.category }}</p>
+            <p>{{ detail.description }}</p>
+
+            <!-- Add to Cart Form -->
+                <div class="form-group">
+                    <label for="quantity" class="font-weight-bold">Quantity:</label>
+                    <input type="number"  name="quantity" id='productqty' class="form-control w-25" value="1" min="1" max="10">
+                </div>
+               
+                <input type="hidden" id="product_id" value="{{ detail.id }}">
+                <input type="hidden" id="product_title" value="{{ detail.name}}">
+                <button type="button" class="btn btn-primary btn-lg mt-3" id='addToCartbtn'>
+                    <i class="fa fa-shopping-cart"></i> Add to Cart
+                </button>
+            
+
+            <!-- Success message -->
+            <div id="success-message" class="alert alert-success mt-3" style="display: none;">
+                Product added to cart successfully!
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

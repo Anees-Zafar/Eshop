@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}
+<title>Search Result</title>
+{% endblock %} 
+
+{% load cart %}
+
+{% block content %}
+
+<!-- Banner Section -->
+<div class="banner-section banner text-center py-5" style="">
+    <h1>Search Results</h1>
+    <p>Home/Search</p>
+</div>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col">
+            <div class="row mx-auto">
+               
+                {% for items in search_result %}
+                <div class="col-6 col-md-4 col-lg-3 mb-4">
+                    <div class="card product-card h-100 shadow-sm rounded">
+                        <a href="{% url 'productdetail' items.id %}" class="card-img-container">
+                            <img src="{{items.imageURL}}" class="card-img-top" alt="{{items.name}}">
+                        </a>
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate">{{items.name}}</h5>
+                            <p class="card-text text-muted" >$ {{items.productattribute_set.first.price}}</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                                <input type="hidden" class="productid-{{ items.id }}"  value="{{ items.id }}" >
+                                <input type="hidden" class="productcolor-{{ items.id }}" value="{{items.productattribute_set.first.color.id}}">
+                                <input type="hidden" class="producttitle-{{ items.id }}" value="{{items.name}}">
+                                <input type="hidden" class="productprice-{{ items.id }}" value="{{items.productattribute_set.first.price}}">
+                                <input type="hidden" class="productquantity-{{ items.id }}" value="1">
+                                <input type="hidden" class="productsize-{{ items.id }}" value="{{items.productattribute_set.first.size}}">
+
+                                
+                                <button type="button" data-address='{{ items.id }}'  class="btn btn-light cart-btn btn-sm addtofirstcart">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                                
+                                <a type="button" href="{% url 'productdetail' items.id %}" class="btn btn-outline-dark buy-now-btn">
+                                    Buy Now
+                                </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+
+
+

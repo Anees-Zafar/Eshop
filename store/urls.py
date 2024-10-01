@@ -28,6 +28,14 @@ urlpatterns = [
     path('resetpassform/<int:id>', views.resetpassform, name='resetpassform'),
     path('customerprofile', views.customerprofile, name='customerprofile'),
     path('profileeditpage', views.profileeditpage , name='profileeditpage'),
-    path('profiledeletepage', views.profiledeletepage , name='profiledeletepage')
+    path('profiledeletepage', views.profiledeletepage , name='profiledeletepage'),
+    path('search', views.search , name='search'),
+    path('<int:product_id>' , views.productdetail , name='productdetail'),
+    path('filterproducts' , views.filterproducts , name='filterproducts'),
+    path('addtocart', views.addtocart , name='addtocart'),
+    path('deletefromcart' , views.deletefromcart , name='deletefromcart'),
+    path('updatecartqty' , views.updatecartqty , name='updatecartqty'),
+    path('shop' , views.shop , name='shop'),
+    path('base', views.base , name='base')
 
  ]

@@ -1,4 +1,126 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}
+<title>Your Cart</title>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 cart-container">
+    <h2 class="mb-4 text-center">Shopping Cart</h2>
+
+    {% if cart_data %}
+    <div class="row">
+        <!-- Cart Items -->
+        <div class="col-lg-8 col-md-12">
+            <div id="cart-items-container">
+                {% for key, item in cart_data.items %}
+                <div class="card cart-item mb-3">
+                    <div class="row align-items-center">
+                        <div class="col-4 col-md-2 text-center">
+                            <img src="{{ item.image }}" class="img-fluid rounded cart-item-image" alt="{{ item.title }}">
+                        </div>
+                        <div class="col-8 col-md-4">
+                            <div class="cart-item-details">
+                                <h5>{{ item.title }}</h5>
+                                <p class="text-muted"><strong>Price: </strong>${{ item.price }}</p>
+                                <p class="text-muted"><strong>Size: </strong>{{ item.size }}</p>
+                                <p><strong>Color:</strong> 
+                                    <span class="color-dot" style="background-color: {{ item.color_code }}"></span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 text-center">
+                            {% comment %} <input type="number" value="{{ item.qty }}" class="form-control update-qty" data-key="{{ key }}" min="1"> {% endcomment %}
+                            <div class="d-flex align-items-center" id="add-to-cart-controls-{{ key }}">
+                              <button class="btn btn-light  btn-sm me-2" id='cartqtydec' onclick="updateCartqty('{{ key }}', 'remove')"> -</button>
+                              {% comment %} <input type="text" value="{{ item.qty }}" class="form-control text-center " id="cart-quantity-{{ key }}"> {% endcomment %}
+                              <span id="cart-quantity-{{ key}}">{{ item.qty }} </span>
+                              <button class="btn btn-light  btn-sm ms-2" onclick="updateCartqty('{{ key }}', 'add')"> +</button>
+                          </div>
+                          </div>
+                        <div class="col-4 col-md-2 text-center">
+                            <p class="total-price" id="item-total-{{ key }}">${{ item.total_price | floatformat:2 }}</p>
+                            <button class="btn  btn-sm delete-item" data-item="{{ key }}">
+                                <i class="fa fa-trash"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="col-lg-4 col-md-12">
+            <div class="card cart-summary">
+                <div class="card-body">
+                    <h4>Cart Summary</h4>
+                    <hr>
+                    <p><strong>Total Items: </strong>{{ cart_data|length }}</p>
+                    <p id='cart-total-price'><strong>Total Price: </strong>${{ total_price }}</p>
+                    <button class="btn btn-primary btn-lg btn-block">Proceed to Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-center empty-cart-msg">Your cart is empty!</p>
+    {% endif %}
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  // Delete item from cart
+	$(document).on('click', '.delete-item', function() {
+    var _pId = $(this).attr('data-item');
+    var _vm = $(this);
+    console.log(_pId);
+    // Ajax
+    $.ajax({
+        url: '/deletefromcart',  // URL to your delete view
+        method: 'POST',           // Use POST for deletions
+        data: {
+            'id': _pId,
+            'csrfmiddlewaretoken': '{{ csrf_token }}'  // Ensure CSRF token is sent
+        },
+        dataType: 'json',
+        beforeSend: function() {
+            _vm.attr('disabled', true);
+        },
+        success: function(res) {
+            $(".cart-list").text(res.totalitems);  // Update total items in cart
+            _vm.attr('disabled', false);
+            window.location.href = "{% url 'cart' %}";
+
+            // Optionally, you could remove the cart item from the UI
+            // You can do something like this if you have a specific class for cart items:
+            // _vm.closest('.cart-item').remove();
+        },
+        error: function() {
+            alert('Error deleting item from cart');
+            _vm.attr('disabled', false);
+        }
+    });
+    // End
+});
+</script> 
+
+<script>
+  
+  </script>
+
+
+
+{% endblock %}
+
+
+
+
+
+
+
+{% comment %} {% extends "base.html" %}
 
 {% load cart %}
 
@@ -31,8 +153,251 @@
             <td>{{ cartitems.name }}</td>
             <td>${{ cartitems.price }}</td>
             {% comment %} <td>{{ cartitems|cart_quantity:request.session.cart }}</td> {% endcomment %}
+{% comment %}{% extends 'base.html' %}
 
+{% block title %}
+<title>Your Cart</title>
+{% endblock %}
 
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">Shopping Cart</h2>
+    
+    {% if cart_data %}
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Cart Items -->
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Size</th>
+                            <th>Color</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, item in cart_data.items %}
+                        <tr>
+                            <td>
+                                <img src="{{ item.image }}" class="img-fluid" style="max-width: 80px;" alt="{{ item.title }}">
+                            </td>
+                            <td>{{ item.title }}</td>
+                            <td>${{ item.price }}</td>
+                            <td>
+                                <input type="number" value="{{ item.qty }}" class="form-control w-50 update-qty" data-key="{{ key }}" min="1">
+                            </td>
+                            <td>{{ item.size }}</td>
+                            <td>
+                                <span style="background-color: {{ item.color }}; width: 20px; height: 20px; display: inline-block; border-radius: 50%;"></span>
+                            </td>
+                            <td>${{ item.total_price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Cart Summary</h5>
+                    <hr>
+                    <p>Total Items: {{ cart_data|length }}</p>
+                    <p><strong>Total Price:</strong> ${{ total_price }}</p>
+                    <button class="btn btn-primary btn-lg btn-block">Proceed to Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <p>Your cart is empty!</p>
+    {% endif %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Functionality to handle quantity update can be added here if needed
+    $(".update-qty").on('change', function() {
+        var key = $(this).data('key');
+        var newQty = $(this).val();
+        // You can make an AJAX call to update the cart quantity in the session
+        // $.ajax({...});
+    });
+</script>
+{% endblock %}
+{% endcomment %}
+
+{% comment %}{% extends 'base.html' %}
+
+{% block title %}
+<title>Your Cart</title>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">Shopping Cart</h2>
+    
+    {% if cart_data %}
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Cart Items -->
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Size</th>
+                            <th>Color</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, item in cart_data.items %}
+                        <tr>
+                            <td>
+                                <img src="{{ item.image }}" class="img-fluid" style="max-width: 80px;" alt="{{ item.title }}">
+                            </td>
+                            <td>{{ item.title }}</td>
+                            <td>${{ item.price }}</td>
+                            <td>
+                                <input type="number" value="{{ item.qty }}" class="form-control w-50 update-qty" data-key="{{ key }}" min="1">
+                            </td>
+                            <td>{{ item.size }}</td>
+                            <td>
+                                <span style="background-color: {{ item.color }}; width: 20px; height: 20px; display: inline-block; border-radius: 50%;"></span>
+                            </td>
+                            <td>${{ item.total_price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Cart Summary</h5>
+                    <hr>
+                    <p>Total Items: {{ cart_data|length }}</p>
+                    <p><strong>Total Price:</strong> ${{ total_price }}</p>
+                    <button class="btn btn-primary btn-lg btn-block">Proceed to Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <p>Your cart is empty!</p>
+    {% endif %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Functionality to handle quantity update can be added here if needed
+    $(".update-qty").on('change', function() {
+        var key = $(this).data('key');
+        var newQty = $(this).val();
+        // You can make an AJAX call to update the cart quantity in the session
+        // $.ajax({...});
+    });
+</script>
+{% endblock %}
+{% endcomment %}
+{% comment %}{% extends 'base.html' %}
+
+{% block title %}
+<title>Your Cart</title>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">Shopping Cart</h2>
+    
+    {% if cart_data %}
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Cart Items -->
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Size</th>
+                            <th>Color</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, item in cart_data.items %}
+                        <tr>
+                            <td>
+                                <img src="{{ item.image }}" class="img-fluid" style="max-width: 80px;" alt="{{ item.title }}">
+                            </td>
+                            <td>{{ item.title }}</td>
+                            <td>${{ item.price }}</td>
+                            <td>
+                                <input type="number" value="{{ item.qty }}" class="form-control w-50 update-qty" data-key="{{ key }}" min="1">
+                            </td>
+                            <td>{{ item.size }}</td>
+                            <td>
+                                <span style="background-color: {{ item.color }}; width: 20px; height: 20px; display: inline-block; border-radius: 50%;"></span>
+                            </td>
+                            <td>${{ item.total_price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Cart Summary</h5>
+                    <hr>
+                    <p>Total Items: {{ cart_data|length }}</p>
+                    <p><strong>Total Price:</strong> ${{ total_price }}</p>
+                    <button class="btn btn-primary btn-lg btn-block">Proceed to Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <p>Your cart is empty!</p>
+    {% endif %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Functionality to handle quantity update can be added here if needed
+    $(".update-qty").on('change', function() {
+        var key = $(this).data('key');
+        var newQty = $(this).val();
+        // You can make an AJAX call to update the cart quantity in the session
+        // $.ajax({...});
+    });
+</script>
+{% endblock %}
+{% endcomment %}
+{% comment %}
             <td>
               {% if cartitems|is_in_cart:request.session.cart %}
               <div class="d-flex align-items-center">
@@ -73,6 +438,7 @@
       <div class="border p-4 rounded text-center bg-light shadow-sm">
         <h4 class="mb-4">Total: ${{ cartproducts|cart_total:request.session.cart }}</h4>
         {% comment %} <a class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#exampleModal" ></a> {% endcomment %}
+        {% comment %}
         {% if cartproducts %}
         <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#exampleModal">
           Go to Checkout
@@ -159,4 +525,4 @@
     }).render('#paypal-button-container');
 </script>
 
-{% endblock %}
+{% endblock %} {% endcomment %}

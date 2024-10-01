@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Products,Customer,Order , Todo ,Profile
+from .models import Category, Products,Customer,Order , Todo ,Profile , Color , Size , ProductAttribute
 
 class AdminProducts(admin.ModelAdmin):
     list_display = ['name', 'price', 'category','image']
@@ -19,6 +19,11 @@ class AdminTodo(admin.ModelAdmin):
 class AdminProfile(admin.ModelAdmin):
     list_display=['id', 'customer' , 'cover_photo' , 'profile_photo' , 'about' , 'address']
 
+class AdminProductAttribute(admin.ModelAdmin):
+    list_display=['id', 'product' , 'color' , 'size' , 'price' ]
+
+class AdminColor(admin.ModelAdmin):
+    list_display=['id' , 'title' , 'color_code']    
 
 admin.site.register(Products, AdminProducts)  
 admin.site.register(Category,AdminCategory)  
@@ -26,3 +31,6 @@ admin.site.register(Customer,AdminCustomer)
 admin.site.register(Order , AdminOrder)
 admin.site.register(Todo , AdminTodo)
 admin.site.register(Profile , AdminProfile)
+admin.site.register(Color , AdminColor)
+admin.site.register(Size)
+admin.site.register(ProductAttribute, AdminProductAttribute)

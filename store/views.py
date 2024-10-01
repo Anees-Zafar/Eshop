@@ -11,95 +11,279 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 from Eshop.settings import EMAIL_HOST_USER
 from django.shortcuts import get_object_or_404
-
+from django.template.loader import render_to_string
+from django.db.models import Min , Max
+import hashlib
+from django.utils.html import strip_tags
 
 @method_decorator(csrf_protect, name='dispatch')
 class Index(View):
     def post(self , request):
-        productcome=request.POST.get('product')
-        removecome=request.POST.get('remove')
-        cart=request.session.get('cart')
-        if cart:
-            quantity=cart.get(productcome)
-            if quantity:
-                if removecome:
-                    if quantity<=1:
-                        cart.pop(productcome)
-                    else:
-                        cart[productcome] =quantity-1    
-                    
-
-                else:
-                    cart[productcome] =quantity+1    
-                  
-            else:
-                cart[productcome] =1     
-        else:
-            cart={}
-            cart[productcome]=1  
-
-        request.session['cart']=cart     
-        print ( cart)
-        return redirect(f'/#{productcome}')
-
-
+        pass
 
     def get(self , request):
-        if 'cart' not in request.session:
-            request.session['cart'] = {}
-        product = None
-        collection=Category.objects.all()
-        print(collection)
-        collectionid=request.GET.get('category')
-        if collectionid:
-            product=Products.get_all_products_by_id(collectionid)
-        else:
-            product=Products.objects.all()
-        # male=Products.get_all_products_by_id(1)       
-        # female=Products.get_all_products_by_id(2) 
-        # kid=Products.get_all_products_by_id(3)       
+        if 'cartdata' not in request.session:
+            request.session['cartdata'] = {}
+       
+                  
+        male=Products.get_all_products_by_id(1)       
+        female=Products.get_all_products_by_id(2) 
+        kid=Products.get_all_products_by_id(3)
+        customer_id = request.session.get('customer_id')
+        profile=Profile.objects.filter(customer=customer_id)
+               
         print ('you are:', request.session.get('email'))
-        print(request.session['cart'])
-        context = {'product': product , 'category':collection }
+        print(request.session['cartdata'])
+        context = {'male': male , 'female':female , 'kid':kid , 'profile':profile }
         return render(request, 'index.html', context)
 
 
+# shop view 
+def shop(request):
+    product =  Products.objects.all()
+    collection=Products.objects.distinct().values('category__name', 'category__id')
+    color=ProductAttribute.objects.distinct().values('color__title', 'color__id' , 'color__color_code')
+    size=ProductAttribute.objects.distinct().values('size__title', 'size__id')
+    minmaxprice=ProductAttribute.objects.aggregate(Min('price'), Max('price'))
+    customer_id = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customer_id)
+    # collection=Category.objects.all()
+        
+    collectionid=request.GET.get('category')
+    if collectionid:
+        product=Products.get_all_products_by_id(collectionid)
+    # else:
+    # product=Products.objects.all()
+
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    if min_price:
+        product = product.filter(price__gte=min_price)
+        
+
+    if max_price:
+        product = product.filter(price__lte=max_price) 
+                  
+    # male=Products.get_all_products_by_id(1)       
+    # female=Products.get_all_products_by_id(2) 
+    # kid=Products.get_all_products_by_id(3)       
+    print ('you are:', request.session.get('email'))
+    print(request.session['cartdata'])
+    context = {'product': product , 'category':collection , 'color':color , 'size':size , 'minmaxprice':minmaxprice , 'profile':profile}
+    return render(request, 'shop.html', context)    
+        
+    
+def base(request):
+    customer_id = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customer_id)
+    print(profile)
+    return render(request , 'base.html' , {'profile':profile})
 
 
+def productdetail(request,product_id):
+    product = Products.objects.get(id=product_id)
+    color = ProductAttribute.objects.filter(product=product).values('color__id', 'color__title', 'color__color_code').distinct()
+    
+    size = ProductAttribute.objects.filter(product=product).values('size__id', 'size__title' , 'price' , 'color__id').distinct()
+    customer_id = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customer_id)
+    context = {  'detail':product , 'color':color , 'size':size , 'profile':profile}
+
+    return render(request,'productdetail.html', context )
+
+
+def filterproducts(request):
+    pagecategory = request.GET.get('pagecategory', None)
+    color = request.GET.getlist('color[]')
+    size = request.GET.getlist('size[]')
+    category = request.GET.getlist('category[]')
+    minprice=request.GET['minprice']
+    maxprice=request.GET['maxprice']
+    print(pagecategory)
+    
+    if pagecategory == '1':  # Ensure you compare with string '1' since GET parameters are strings
+        allproducts = Products.objects.filter(category__id=1).distinct()
+    elif pagecategory == '2':  # Ensure you compare with string '1' since GET parameters are strings
+        allproducts = Products.objects.filter(category__id=2).distinct()
+    elif pagecategory == '3':  # Ensure you compare with string '1' since GET parameters are strings
+        allproducts = Products.objects.filter(category__id=3).distinct()        
+    else:
+        allproducts = Products.objects.all().distinct()
+
+
+    allproducts=allproducts.filter(productattribute__price__gte=minprice)
+    allproducts=allproducts.filter(productattribute__price__lte=maxprice)
+
+    if len(color)>0:
+        allproducts=allproducts.filter(productattribute__color__id__in=color).distinct()
+    if len(size)>0:
+        allproducts=allproducts.filter(productattribute__size__id__in=size).distinct()
+    if len(category)>0:
+        allproducts=allproducts.filter(category__id__in=category).distinct()    
+
+    # if color:
+    #     allproducts = allproducts.filter(color__id__in=color)
+    # if size:
+    #     allproducts = allproducts.filter(size__id__in=size)
+    # if category:
+    #     allproducts = allproducts.filter(category__id__in=category)
+
+    t = render_to_string('productlist.html', {'data': allproducts})
+
+    return JsonResponse({'data': t})
+
+
+
+def addtocart(request):
+    # del request.session['cartdata']
+    product_id = request.GET['id']
+    size = request.GET['size']
+    color = request.GET['color']
+    
+    # Generate a unique key by hashing the product ID, size, and color
+    unique_key = hashlib.md5(f"{product_id}_{size}_{color}".encode()).hexdigest()
+
+    # Prepare the product data
+    cart_p = {
+        unique_key: {
+            'title': request.GET['title'],
+            'qty': int(request.GET['qty']),
+            'price':float(request.GET['price'].replace('$', '')), 
+            'color': color,
+            'size': size,
+        }
+    }
+    print(cart_p)
+    # If there is existing cart data in the session
+    if 'cartdata' in request.session:
+        cart_data = request.session['cartdata']
+
+        # If the exact product variation is already in the cart, update the quantity
+        if unique_key in cart_data:
+            cart_data[unique_key]['qty'] += int(cart_p[unique_key]['qty'])
+        else:
+            # Add the new variation to the cart
+            cart_data.update(cart_p)
+
+        request.session['cartdata'] = cart_data
+    else:
+        # If there is no cart data in the session, create a new cart
+        request.session['cartdata'] = cart_p
+
+    # Return the updated cart data and total items count
+    return JsonResponse({'data': request.session['cartdata'], 'totalitems': len(request.session['cartdata'])})
+        
+
+def deletefromcart(request):
+    id = request.POST.get('id')  # Use POST instead of GET
+    if 'cartdata' in request.session:
+        cart_data = request.session['cartdata']
+
+        # Check if the item exists in the cart and delete it
+        if id in cart_data:
+            del cart_data[id]  # Delete the item from the cart
+
+            # Update the session data
+            request.session['cartdata'] = cart_data
+            
+    # Return the updated total items count
+    return JsonResponse({'totalitems': len(request.session.get('cartdata', {}))})
+
+
+def updatecartqty(request):
+    if request.method == 'POST':
+        unique_key = request.POST.get('product')
+        removecome = request.POST.get('remove')  # This will be 'true' if it's a remove action
+        
+        if 'cartdata' in request.session:
+            cart_data = request.session['cartdata']
+            
+            if unique_key in cart_data:
+                if removecome:
+                    # If the quantity is 1 or less, remove the item from the cart
+                    if cart_data[unique_key]['qty'] <= 1:
+                        cart_data.pop(unique_key)
+                    else:
+                        # Decrement the quantity
+                        cart_data[unique_key]['qty'] -= 1
+                
+                else:
+                    # Increment the quantity
+                    cart_data[unique_key]['qty'] += 1
+
+                # Update the session cart data
+                request.session['cartdata'] = cart_data
+
+                # Prepare response data
+                updated_quantity = cart_data.get(unique_key, {}).get('qty', 0)
+                cart_length = len(cart_data)  # Total items in cart
+
+
+                if unique_key in cart_data:
+                    item_price = cart_data[unique_key]['price']
+                    item_total_price = updated_quantity * item_price
+
+                    # Initialize total_price variable
+                    total_price = 0
+                    
+                    # Recalculate the overall cart total price
+                    for item in cart_data.values():
+                        total_price += item['qty'] * item['price']
+
+                    return JsonResponse({
+                        'product_id': unique_key,
+                        'quantity': updated_quantity,
+                        'cart_length': cart_length,
+                        'item_total_price': item_total_price,
+                        'total_price': total_price,
+                    })
+
+           
+
+        # Return an empty response if the product is not found in the cart
+        return JsonResponse({'error': 'Product not found in cart.'}, status=400)
+
+    return JsonResponse({'error': 'Invalid request method.'}, status=400)
+            
+             
+        
+
+    
 
 @method_decorator(csrf_protect, name='dispatch')
 class Malecatageory(View):
-    def post(self , request):
-        productcome=request.POST.get('product')
-        removecome=request.POST.get('remove')
-        cart=request.session.get('cart')
-        if cart:
-            quantity=cart.get(productcome)
-            if quantity:
-                if removecome:
-                    if quantity<=1:
-                        cart.pop(productcome)
-                    else:
-                        cart[productcome] =quantity-1    
-                    
-
-                else:
-                    cart[productcome] =quantity+1    
-                  
-            else:
-                cart[productcome] =1     
-        else:
-            cart={}
-            cart[productcome]=1  
-
-        request.session['cart']=cart     
-        print ( cart)
-        return redirect('male')
-
+ 
     def get(self , request):
-        items=Products.get_all_products_by_id(1)
+        product = Products.get_all_products_by_id(1)
+        collection=Products.objects.distinct().values('category__name', 'category__id')
+        color=ProductAttribute.objects.distinct().values('color__title', 'color__id' , 'color__color_code')
+        size=ProductAttribute.objects.distinct().values('size__title', 'size__id')
+        minmaxprice=ProductAttribute.objects.aggregate(Min('price'), Max('price'))
+        customer_id = request.session.get('customer_id')
+        profile=Profile.objects.filter(customer=customer_id)
+        # collection=Category.objects.all()
         
-        return render(request, 'male.html', {'items':items})
+        collectionid=request.GET.get('category')
+        if collectionid:
+            product=Products.get_all_products_by_id(collectionid)
+        # else:
+        #     product=Products.objects.all()
+
+        min_price = request.GET.get('min_price')
+        max_price = request.GET.get('max_price')
+        if min_price:
+                product = product.filter(price__gte=min_price)
+        
+
+        if max_price:
+                product = product.filter(price__lte=max_price) 
+                  
+           
+        print ('you are:', request.session.get('email'))
+        print(request.session['cartdata'])
+        context = {'product': product , 'category':collection , 'color':color , 'size':size , 'minmaxprice':minmaxprice , 'profile':profile}
+        
+        return render(request, 'male.html', context)
     
 
 
@@ -107,72 +291,75 @@ class Malecatageory(View):
 
 @method_decorator(csrf_protect, name='dispatch')
 class Femalecatageory(View):
-    def post(self , request):
-        productcome=request.POST.get('product')
-        removecome=request.POST.get('remove')
-        cart=request.session.get('cart')
-        if cart:
-            quantity=cart.get(productcome)
-            if quantity:
-                if removecome:
-                    if quantity<=1:
-                        cart.pop(productcome)
-                    else:
-                        cart[productcome] =quantity-1    
-                    
-
-                else:
-                    cart[productcome] =quantity+1    
-                  
-            else:
-                cart[productcome] =1     
-        else:
-            cart={}
-            cart[productcome]=1  
-
-        request.session['cart']=cart     
-        print ( cart)
-        return redirect('female')
-
     def get(self , request):
-        items=Products.get_all_products_by_id(2)
-       
-        return render(request, 'female.html', {'items':items})
+        product = Products.get_all_products_by_id(2)
+        collection=Products.objects.distinct().values('category__name', 'category__id')
+        color=ProductAttribute.objects.distinct().values('color__title', 'color__id' , 'color__color_code')
+        size=ProductAttribute.objects.distinct().values('size__title', 'size__id')
+        minmaxprice=ProductAttribute.objects.aggregate(Min('price'), Max('price'))
+        customer_id = request.session.get('customer_id')
+        profile=Profile.objects.filter(customer=customer_id)
+        # collection=Category.objects.all()
+        
+        collectionid=request.GET.get('category')
+        if collectionid:
+            product=Products.get_all_products_by_id(collectionid)
+        # else:
+        #     product=Products.objects.all()
+
+        min_price = request.GET.get('min_price')
+        max_price = request.GET.get('max_price')
+        if min_price:
+                product = product.filter(price__gte=min_price)
+        
+
+        if max_price:
+                product = product.filter(price__lte=max_price) 
+                  
+              
+        print ('you are:', request.session.get('email'))
+        print(request.session['cartdata'])
+        context = {'profile':profile ,'product': product , 'category':collection , 'color':color , 'size':size , 'minmaxprice':minmaxprice}
+        
+        return render(request, 'female.html', context)
 
 
 
 @method_decorator(csrf_protect, name='dispatch')
 class Kidcatageory(View):
-    def post(self , request):
-        productcome=request.POST.get('product')
-        removecome=request.POST.get('remove')
-        cart=request.session.get('cart')
-        if cart:
-            quantity=cart.get(productcome)
-            if quantity:
-                if removecome:
-                    if quantity<=1:
-                        cart.pop(productcome)
-                    else:
-                        cart[productcome] =quantity-1    
-                    
-
-                else:
-                    cart[productcome] =quantity+1    
-                  
-            else:
-                cart[productcome] =1     
-        else:
-            cart={}
-            cart[productcome]=1  
-
-        request.session['cart']=cart     
-        print ( cart)
-        return redirect('kid')
+    
 
     def get(self , request):
-        items=Products.get_all_products_by_id(3)
-        return render(request, 'kid.html', {'items':items})
+        product = Products.get_all_products_by_id(3)
+        collection=Products.objects.distinct().values('category__name', 'category__id')
+        color=ProductAttribute.objects.distinct().values('color__title', 'color__id' , 'color__color_code')
+        size=ProductAttribute.objects.distinct().values('size__title', 'size__id')
+        minmaxprice=ProductAttribute.objects.aggregate(Min('price'), Max('price'))
+        customer_id = request.session.get('customer_id')
+        profile=Profile.objects.filter(customer=customer_id)
+        # collection=Category.objects.all()
+        
+        collectionid=request.GET.get('category')
+        if collectionid:
+            product=Products.get_all_products_by_id(collectionid)
+        # else:
+        #     product=Products.objects.all()
+
+        min_price = request.GET.get('min_price')
+        max_price = request.GET.get('max_price')
+        if min_price:
+                product = product.filter(price__gte=min_price)
+        
+
+        if max_price:
+                product = product.filter(price__lte=max_price) 
+                  
+              
+        print ('you are:', request.session.get('email'))
+        print(request.session['cartdata'])
+        context = {'profile':profile , 'product': product , 'category':collection , 'color':color , 'size':size , 'minmaxprice':minmaxprice}
+        
+        return render(request, 'kid.html', context)
 
 
 
@@ -180,7 +367,9 @@ class Kidcatageory(View):
 @requires_csrf_token
 def Signup(request):
     if request.method=='GET':
-        return render(request, 'signup.html')
+        customer_id = request.session.get('customer_id')
+        profile=Profile.objects.filter(customer=customer_id)
+        return render(request, 'signup.html' , {'profile':profile})
     else:
         first_name=request.POST.get('firstname')
         last_name=request.POST.get('lastname')
@@ -202,25 +391,9 @@ def Signup(request):
             'email':email,
         }
 
-    # #  Form validation 
         error=None 
 
-    #     if not first_name:
-    #         error='First name is required'
-    #     elif len(first_name)<4 :
-    #         error='First name is must be grater than 4 digits'
-    #     elif not last_name:
-    #         error='Last name is required'
-    #     elif len(last_name)<4 :
-    #         error='Last name is must be grater than 4 digits'    
-    #     elif not phone:
-    #         error='Phone number is required'
-    #     elif len(phone)<10 :
-    #         error='Phone number is must be grater than 11 digits'
-    #     elif not email:
-    #         error='Email is required'  
-    #     elif customer.isExist():  
-    #         error = 'This Email ID already exists'          
+        
 
         if not error:
             customer.password=make_password(customer.password)
@@ -248,8 +421,10 @@ class Login(View):
     return_url = None
 
     def get(self , request):
+        customer_id = request.session.get('customer_id')
+        profile=Profile.objects.filter(customer=customer_id)
         Login.return_url = request.GET.get('return_url')
-        return render(request, 'login.html')
+        return render(request, 'login.html' , {'profile':profile})
         
     def post(self , request):
         if request.method == 'POST':
@@ -277,26 +452,7 @@ class Login(View):
 
 
    
-# def check_login(request):
-#     if request.method == 'POST':
-#         email = request.POST.get('email')
-#         password = request.POST.get('password')
 
-#         customer = Customer.get_customer_by_email(email)
-#         if customer:
-#             if check_password(password, customer.password):
-#                 request.session['customer_id'] = customer.id
-#                 request.session['email'] = customer.email
-#                 if Login.return_url:
-#                     return HttpResponseRedirect(Login.return_url)
-#                 else:
-#                     Login.return_url = None
-#                     return redirect("index")  # Redirect to home on success
-#             else:
-#                 return JsonResponse({'success': False, 'error': 'Invalid email or password.'})
-#         else:
-#             return JsonResponse({'success': False, 'error': 'Invalid email or password.'})
-#     return JsonResponse({'success': False, 'error': 'Invalid request.'})
         
    
 
@@ -308,14 +464,32 @@ def sendingemail(request):
         email = request.POST.get('email')
 
         customer = Customer.get_customer_by_email(email)
-        print(customer.email)
+        
         if customer:
+            html_message = f"""
+            <html>
+                <body style="font-family: Arial, sans-serif; padding: 20px;">
+                    <h2 style="color: #333;">Hey Dear Customer, {customer}!</h2>
+                    <p>We received a request to reset your Eshop account password. If you didn't make this request, you can safely ignore this email.</p>
+                    <p>To reset your password, please click the button below:</p>
+                    <a href="http://127.0.0.1:8000/resetpassform/{customer.id}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">Reset Password</a>
+                    <p>If the button doesn't work, please copy and paste the following link into your browser:</p>
+                    <p><a href="http://127.0.0.1:8000/resetpassform/{customer.id}">http://127.0.0.1:8000/resetpassform/{customer.id}</a></p>
+                    <p style="color: #666;">Thank you,<br>The Eshop Team</p>
+                </body>
+            </html>
+            """
+
+            # Fallback plain-text version for email clients that do not support HTML
+            plain_message = strip_tags(html_message)
+
             send_mail(
                 "Recover Your Account ",
-                f"Hey Dear Customer: {customer} . For reset your Eshop Account Password Click on \n http://127.0.0.1:8000/resetpassform/{customer.id} ",
+                plain_message,  # Plain text version
                 EMAIL_HOST_USER,
-                [customer.email],
+                ['aneesdeveloper038@gmail.com'],  # The recipient's email
                 fail_silently=True,
+                html_message=html_message
             )
             print('successful')
             return JsonResponse({'success': True, 'redirect_url': 'infoemailsend'})
@@ -368,9 +542,41 @@ def logout(request):
 @requires_csrf_token
 def cart(request):
     if request.method=='GET':
-        ids=list(request.session.get('cart').keys())
-        cartproducts=Products.det_product_by_id(ids)
-        return render(request,'cart.html' , {'cartproducts': cartproducts}  )
+        cart_data = request.session.get('cartdata', {})
+        total_price = 0
+        updated_cart_data = {}
+
+        for key, item in cart_data.items():
+            # Get product details from the database using the product title (or use an ID if available)
+            try:
+                products = Products.objects.filter(name=item['title'])
+                if products.exists():
+                    product = products.first()
+                else:
+                    continue      # Assuming key is the product ID
+                color = Color.objects.get(id=item['color'])  # Assuming the color ID is stored in session
+                item_price = float(item['price'])
+                item['total_price'] = int(item['qty']) * item_price
+                total_price += item['total_price']
+
+                # Add the product image and color to the session data
+                item['image'] = product.image.url
+                item['color_code'] = color.color_code
+                item['color_title'] = color.title
+                updated_cart_data[key] = item
+
+            except Products.DoesNotExist:
+                continue
+            except Color.DoesNotExist:
+                continue
+        customer_id = request.session.get('customer_id')
+        profile=Profile.objects.filter(customer=customer_id)
+        context = {
+            'cart_data': updated_cart_data,
+            'total_price': total_price,
+            'profile':profile
+        }
+        return render(request, 'cart.html', context)
     else:
         productcome=request.POST.get('product')
         removecome=request.POST.get('remove')
@@ -456,8 +662,10 @@ def checkout(request):
        
 def orders(request):
     customerlogin = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customerlogin)
+
     orderitems = Order.get_orders(customerlogin)
-    return render(request, 'orders.html', {'orderitems': orderitems})
+    return render(request, 'orders.html', {'orderitems': orderitems , 'profile':profile})
 
 
 
@@ -476,9 +684,11 @@ def paypal_failed(request):
 
 def todo(request):
     if request.method=='GET':
+
         customerlogin = request.session.get('customer_id')
+        profile=Profile.objects.filter(customer=customerlogin)
         todoitems=Todo.get_todos(customerlogin)
-        return render(request , 'todo.html' , {'todoitems':todoitems})
+        return render(request , 'todo.html' , {'todoitems':todoitems , 'profile':profile})
     else:
         title=request.POST.get('title')
         description=request.POST.get('description')
@@ -517,6 +727,8 @@ def change(request , id ):
 
 def customerprofile(request):
     customerlogin = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customerlogin)
+    
     print(f"this is customer login {customerlogin}")
 
     if customerlogin:
@@ -531,7 +743,7 @@ def customerprofile(request):
             print("Profile does not exist for this customer")
         # prodata=Profile.objects.get(customer=customer)
         # print(prodata.cover_photo) 
-        return render(request, 'customerprofile.html', {'customer': customer , 'prodata':prodata})
+        return render(request, 'customerprofile.html', {'customer': customer , 'prodata':prodata , 'profile':profile})
     else:
         print('No customer logged in')
         return redirect('login') 
@@ -585,7 +797,8 @@ def profileeditpage(request):
                 print("Profile does not exist for this customer")
             # prodata=Profile.objects.get(customer=customer)
             # print(prodata.address)
-            return render(request, 'profileeditpage.html', {'customer': customer , 'prodata':prodata})
+            profile=Profile.objects.filter(customer=customerlogin)
+            return render(request, 'profileeditpage.html', {'customer': customer , 'prodata':prodata , 'profile':profile})
         else:
             print('No customer logged in')
             return redirect('login') 
@@ -629,4 +842,13 @@ def profiledeletepage(request):
         
 #         profile.save()
 
-#         return JsonResponse({'success': True})    
+#         return JsonResponse({'success': True}) 
+
+@csrf_exempt
+def search(request):
+    product=Products.objects.all()
+    search=request.POST.get('search')
+    search_result=product.filter(name__icontains=search)
+    customerlogin = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customerlogin)
+    return render(request , 'search.html' , {'search_result':search_result , 'search':search , 'profile':profile})

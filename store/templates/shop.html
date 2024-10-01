@@ -1,16 +1,19 @@
 {% extends "base.html" %}
 {% block title %}
-<title>Female Products</title>
-{% endblock %} 
+<title>Shop </title>
 
+
+
+{% endblock %}
 {% load cart %}
 
 {% block content %}
+<div id="success-message" style="display: none; color: green;">Cart updated!</div>
 
 <!-- Banner Section -->
 <div class="banner-section banner text-center py-5" style="">
-    <h1>Female Products</h1>
-    <p>Home / Female</p>
+    <h1>All Products</h1>
+    <p>Home/Shop</p>
 </div>
 
 <!-- Filter Toggle Button for Mobile -->
@@ -25,12 +28,10 @@
         <div class="col-lg-3 mb-4 filter-sidebar d-none d-lg-block">
 
            <div class="list-group list-group-flush">
-            <input type="hidden" class="pagecategory"  value="2" >
             <h4 type="button"  class="list-group-item list-group-item-action filterheading">
                 Price Filter
             </h4>
                 <li class="list-group-item">
-                    
                     <input  min='{{minmaxprice.price__min}}' max='{{minmaxprice.price__max}}' value='{{minmaxprice.price__min}}'  oninput='maxprice.value=this.value'  type="range" name="" id="rangeinput" >
                     <p>{{minmaxprice.price__min}}-{{minmaxprice.price__max}}</p>
                 </li>
@@ -42,15 +43,16 @@
             </div>
             
             <!-- Other Filter Sections (Category, Color, Size) -->
-            {% comment %} <div class="list-group list-group-flush">
-                
-                <a href="{% url 'index' %}" class="list-group-item list-group-item-action active">All Products</a>
-                {% for items in category %}
+            <div class="list-group list-group-flush">
+                <h4 type="button"  class="list-group-item list-group-item-action filterheading">
+                    Category Filter
+                </h4>
+                    {% for items in category %}
                 <li class="list-group-item">
                     <input class="filter-checkbox" data-filter="category" type="checkbox" value="{{items.category__id}}">&nbsp; {{items.category__name}}
                 </li>
                 {% endfor %}
-            </div> {% endcomment %}
+            </div>
 
           <!---- color filter --->
             <div class="list-group list-group-flush">
@@ -68,7 +70,7 @@
              <!----  size filter  -->
              <div class="list-group list-group-flush">
                 <h4 type="button"  class="list-group-item list-group-item-action filterheading">
-                    Size Filter
+                   Size Filter
                 </h4>   
                 {% for items in size %}  
                 <li class="list-group-item">
@@ -124,11 +126,40 @@
     <div class="close-sidebar">X</div>
     <div class="filter-content">
 
-      
+       {% comment %} <!---- price filter --->
+        <div class="list-group list-group-flush">
+            <a type="button" href="" class="list-group-item list-group-item-action active">
+                Price Filter
+            </a>
+            <li class="list-group-item">
+                <input  min='{{minmaxprice.price__min}}' max='{{minmaxprice.price__max}}' value='{{minmaxprice.price__min}}'  oninput='maxprice.value=this.value'  type="range" name="" id="rangeinput" >
+                <p>{{minmaxprice.price__min}}-{{minmaxprice.price__max}}</p>
+            </li>
+            <li class="list-group-item">
+               Max-Price: <input  min='{{minmaxprice.price__min}}' max='{{minmaxprice.price__max}}' onkeyup='rangeinput.value=this.value'  type="number" name="" id="maxprice"  value='{{minmaxprice.price__max}}' >
+               <button id='pricefilterbtn' class='btn-sm btn-info'>Filter</button>
+            </li>
+
+        </div> {% endcomment %}
 
 
 
-             
+               <!---- category filter --->
+
+               <div class="list-group list-group-flush">
+                <h4 type="button"  class="list-group-item list-group-item-action filterheading">
+                    Category Filter
+                </h4>
+                {% for items in category %}
+               
+                <li class="list-group-item">
+                    <input class='filter-checkbox' data-filter='category' type="checkbox" name="" id="" value='{{items.category__id}}'>&nbsp;
+                    {{items.category__name}}
+
+                </li>
+                {% endfor %}
+
+            </div>
 
 
          <!----  color filter  -->
@@ -136,7 +167,7 @@
             <div class="list-group list-group-flush">
                 <h4 type="button"  class="list-group-item list-group-item-action filterheading">
                     Color Filter
-                </h4>  
+                </h4> 
                 {% for items in color %}    
                 <li class="list-group-item">
                     <input class='filter-checkbox' data-filter='color' type="checkbox" name="" id="" value='{{items.color__id}}'>&nbsp;
@@ -152,7 +183,6 @@
                 <h4 type="button"  class="list-group-item list-group-item-action filterheading">
                     Size Filter
                 </h4>
-               
                 {% for items in size %}
               
                 <li class="list-group-item">
@@ -170,73 +200,83 @@
 </div>
 
 
+
+
+<!-- JavaScript for Sidebar Toggle -->
 <script>
-    //   for price filter wrong range alert 
-    $('#maxprice').on('blur', function(){
-      var min=$(this).attr('min');
-      var max=$(this).attr('max');
-      var value=$(this).val();
-      console.log(min , max , value);
-      if (value<parseInt(min)|| value > parseInt(max)){
-          alert('value is must be '+ min+'-' + max)
-          $(this).val(min);
-          $(this).focus();
-          $('#maxprice').val(min);
-          return false;
-          }
-  
-    })
-  </script>
-  <script>
-      $(document).ready(function(){
-          $('.ajaxloader').hide();
-  
-          $(".filter-checkbox , #pricefilterbtn ").on('click', function(){
-              var _filterObj={};
-              var minprice=$('#maxprice').attr('min');
-              var maxprice=$('#maxprice').val();
-              var pagecategory=$('.pagecategory').val();
-              _filterObj.minprice=minprice;
-              _filterObj.maxprice=maxprice;
-              _filterObj.pagecategory=pagecategory;
-  
-              console.log(pagecategory);
-  
-              $(".filter-checkbox").each(function(index,ele){
-               var _filterVal=$(this).val();
-               var _filterkey=$(this).data('filter'); 
-               _filterObj[_filterkey]= Array.from(document.querySelectorAll('input[data-filter='+_filterkey+']:checked')).map(function(el){
-                     return el.value;
-               });
-              });
-              $.ajax({
-                  url: '{% url "filterproducts" %}', // Update the URL to your Django view URL for validation
-                  data:_filterObj,
-                  dataType:'json',
-                  beforeSend:function(){
-                      $('.ajaxloader').show();
-                  },
-                  success: function(response) {
-                      $('.ajaxloader').hide();
-                      $('#filteredproducts').html(response.data);
-  
-                     
-                  }
-                
-              });
-              console.log(_filterObj);
-  
-  
-  
-          });
+    document.getElementById('toggleFilters').addEventListener('click', function() {
+        document.querySelector('.filter-sidebar-mobile').style.display = 'block';
+    });
+    
+    document.querySelector('.close-sidebar').addEventListener('click', function() {
+        document.querySelector('.filter-sidebar-mobile').style.display = 'none';
+    });
+</script>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  //   for price filter wrong range alert 
+  $('#maxprice').on('blur', function(){
+    var min=$(this).attr('min');
+    var max=$(this).attr('max');
+    var value=$(this).val();
+    console.log(min , max , value);
+    if (value<parseInt(min)|| value > parseInt(max)){
+        alert('value is must be '+ min+'-' + max)
+        $(this).val(min);
+        $(this).focus();
+        $('#maxprice').val(min);
+        return false;
+        }
+
+  })
+</script>
+<script>
+    $(document).ready(function(){
+        $('.ajaxloader').hide();
+
+        $(".filter-checkbox , #pricefilterbtn ").on('click', function(){
+            var _filterObj={};
+            var minprice=$('#maxprice').attr('min');
+            var maxprice=$('#maxprice').val();
+            _filterObj.minprice=minprice;
+            _filterObj.maxprice=maxprice;
+
+            $(".filter-checkbox").each(function(index,ele){
+             var _filterVal=$(this).val();
+             var _filterkey=$(this).data('filter'); 
+             _filterObj[_filterkey]= Array.from(document.querySelectorAll('input[data-filter='+_filterkey+']:checked')).map(function(el){
+                   return el.value;
+             });
+            });
+            $.ajax({
+                url: '{% url "filterproducts" %}', // Update the URL to your Django view URL for validation
+                data:_filterObj,
+                dataType:'json',
+                beforeSend:function(){
+                    $('.ajaxloader').show();
+                },
+                success: function(response) {
+                    $('.ajaxloader').hide();
+                    $('#filteredproducts').html(response.data);
+
+                   
+                }
               
-  
-      });
-  </script>
+            });
+            console.log(_filterObj);
+
+
+
+        });
+            
+
+    });
+</script>
+
+
+    
+    
 
 {% endblock %}
-
-
-
-
-

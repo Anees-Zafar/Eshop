@@ -1,116 +1,257 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}
-<title>Store</title>
+<title>Store - Home</title>
+
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-6VD8YPr2e6DWoWvHwZefbPqFYPLb67jmwzPDBkegT2vlH/wnZBL9HjggK7tBTZx" crossorigin="anonymous">
 {% endblock %}
-{% load cart %}
 
 {% block content %}
 
-<div id="success-message" style="display: none; color: green;">Cart updated!</div>
-<!-- Banner Section -->
-<div class="container-fluid  text-white py-4 mb-4" style="background: linear-gradient(to right, mediumblue, lightblue); color: white;">
-    <div class="container">
-        <h1 class="text-center">Welcome to Our Store</h1>
+<!-- Slider Section (Bootstrap Carousel) -->
+<div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+  </div>
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="{% static 'images/slide1.jpg' %}" class="d-block w-100" alt="Slide 1">
     </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/slide2.jpg' %}" class="d-block w-100" alt="Slide 2">
+    </div>
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
 </div>
 
-<!-- Main Content Section -->
-<div class="container">
+<!-- Collection List Section -->
+<div class="container my-5">
+  <h2 class="text-center mb-4">Our Collections</h2>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card">
+        <a href="{% url 'male' %}"><img src="{% static 'images/male-category.jpg' %}" class="card-img-top" alt="Male Watches">
+        <div class="card-body text-center"></a>
+          <h5 class="card-title">Male Watches</h5>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <a href="{% url 'female' %}"><img src="{% static 'images/female-category.jpg' %}" class="card-img-top" alt="Female Watches">
+        <div class="card-body text-center"></a>
+          <h5 class="card-title">Female Watches</h5>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <a href="{% url 'kid' %}"><img src="{% static 'images/kids-category.jpg' %}" class="card-img-top" alt="Kids Watches">
+        <div class="card-body text-center"></a>
+          <h5 class="card-title">Kids Watches</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Swiper Section males -->
+<div class="container my-5">
+  <h2 class="text-center mb-4">Weekly Deal Foe Males</h2>
+  <div class="swiper mySwiper">
+    <div class="swiper-wrapper">
+      {% for items in male %}
+      <div class="swiper-slide">
+        <div class="card product-card h-100 shadow-sm rounded">
+          <a href="{% url 'productdetail' items.id %}" class="card-img-container">
+            <img src="{{ items.imageURL }}" class="card-img-top" alt="{{ items.name }}">
+          </a>
+          <div class="card-body">
+            <h5 class="card-title text-truncate">{{ items.name }}</h5>
+            <p class="card-text text-muted">$ {{ items.productattribute_set.first.price }}</p>
+          </div>
+          <div class="card-footer d-flex justify-content-between align-items-center">
+
+            <input type="hidden" class="productid-{{ items.id }}"  value="{{ items.id }}" >
+            <input type="hidden" class="productcolor-{{ items.id }}" value="{{items.productattribute_set.first.color.id}}">
+            <input type="hidden" class="producttitle-{{ items.id }}" value="{{items.name}}">
+            <input type="hidden" class="productprice-{{ items.id }}" value="{{items.productattribute_set.first.price}}">
+            <input type="hidden" class="productquantity-{{ items.id }}" value="1">
+            <input type="hidden" class="productsize-{{ items.id }}" value="{{items.productattribute_set.first.size}}">
+
+            <button type="button" data-address='{{ items.id }}'  class="btn-light  cart-btn btn-sm addtofirstcart">
+              <i class="fas fa-shopping-cart"></i>
+          </button>
+            <a href="{% url 'productdetail' items.id %}" class="btn btn-outline-dark buy-now-btn">Buy Now</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <!-- Add Pagination and Navigation Buttons -->
+    <div class="swiper-pagination"></div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+  </div>
+</div>
+
+
+
+
+<!-- Swiper Section  females -->
+<div class="container my-5 pt-5">
+  <h2 class="text-center mb-4">Weekly Deal For Females</h2>
+  <div class="swiper mySwiper">
+    <div class="swiper-wrapper">
+      {% for items in female %}
+      <div class="swiper-slide">
+        <div class="card product-card h-100 shadow-sm rounded">
+          <a href="{% url 'productdetail' items.id %}" class="card-img-container">
+            <img src="{{ items.imageURL }}" class="card-img-top" alt="{{ items.name }}">
+          </a>
+          <div class="card-body">
+            <h5 class="card-title text-truncate">{{ items.name }}</h5>
+            <p class="card-text text-muted">$ {{ items.productattribute_set.first.price }}</p>
+          </div>
+          <div class="card-footer d-flex justify-content-between align-items-center">
+
+            <input type="hidden" class="productid-{{ items.id }}"  value="{{ items.id }}" >
+            <input type="hidden" class="productcolor-{{ items.id }}" value="{{items.productattribute_set.first.color.id}}">
+            <input type="hidden" class="producttitle-{{ items.id }}" value="{{items.name}}">
+            <input type="hidden" class="productprice-{{ items.id }}" value="{{items.productattribute_set.first.price}}">
+            <input type="hidden" class="productquantity-{{ items.id }}" value="1">
+            <input type="hidden" class="productsize-{{ items.id }}" value="{{items.productattribute_set.first.size}}">
+
+            <button type="button" data-address='{{ items.id }}'  class="btn-light  cart-btn btn-sm addtofirstcart">
+              <i class="fas fa-shopping-cart"></i>
+          </button>
+            <a href="{% url 'productdetail' items.id %}" class="btn btn-outline-dark buy-now-btn">Buy Now</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <!-- Add Pagination and Navigation Buttons -->
+    <div class="swiper-pagination"></div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+  </div>
+</div>
+
+
+
+<!-- Swiper Section  females -->
+<div class="container my-5 pt-5">
+  <h2 class="text-center mb-4">Weekly Deal For Females</h2>
+  <div class="swiper mySwiper">
+    <div class="swiper-wrapper">
+      {% for items in kid %}
+      <div class="swiper-slide">
+        <div class="card product-card h-100 shadow-sm rounded">
+          <a href="{% url 'productdetail' items.id %}" class="card-img-container">
+            <img src="{{ items.imageURL }}" class="card-img-top" alt="{{ items.name }}">
+          </a>
+          <div class="card-body">
+            <h5 class="card-title text-truncate">{{ items.name }}</h5>
+            <p class="card-text text-muted">$ {{ items.productattribute_set.first.price }}</p>
+          </div>
+          <div class="card-footer d-flex justify-content-between align-items-center">
+
+            <input type="hidden" class="productid-{{ items.id }}"  value="{{ items.id }}" >
+            <input type="hidden" class="productcolor-{{ items.id }}" value="{{items.productattribute_set.first.color.id}}">
+            <input type="hidden" class="producttitle-{{ items.id }}" value="{{items.name}}">
+            <input type="hidden" class="productprice-{{ items.id }}" value="{{items.productattribute_set.first.price}}">
+            <input type="hidden" class="productquantity-{{ items.id }}" value="1">
+            <input type="hidden" class="productsize-{{ items.id }}" value="{{items.productattribute_set.first.size}}">
+
+            <button type="button" data-address='{{ items.id }}'  class="btn-light  cart-btn btn-sm addtofirstcart">
+              <i class="fas fa-shopping-cart"></i>
+          </button>
+            <a href="{% url 'productdetail' items.id %}" class="btn btn-outline-dark buy-now-btn">Buy Now</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <!-- Add Pagination and Navigation Buttons -->
+    <div class="swiper-pagination"></div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
+  </div>
+</div>
+
+<!-- Footer Section -->
+<footer class="bg-dark text-white py-4">
+  <div class="container">
     <div class="row">
-        <!-- Category Section -->
-        <div class="col-lg-3 mb-4">
-            <div class="list-group">
-                <a type="button" href="{% url 'index' %}" class="list-group-item list-group-item-action active">
-                    All Products
-                </a>
-                {% for items in category %}
-                <a type="button" href="/?category={{items.id}}" class="list-group-item list-group-item-action">
-                    {{items.name}}
-                </a>
-                {% endfor %}
-            </div>
+      <div class="col-md-6">
+        <h5>About Us</h5>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      </div>
+      <div class="col-md-6 text-md-end">
+        <h5>Contact Us</h5>
+        <p>Email: support@example.com</p>
+        <p>Phone: +1 234 567 890</p>
+        <div>
+          <a href="#" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
         </div>
-
-        <!-- Product Section -->
-        <div class="col-lg-9">
-            <div class="row">
-                {% for items in product %}
-                <div class="col-md-6 col-lg-4 mb-4 " id="{{items.id}}">
-                    <div class="card h-100 shadow-sm rounded">
-                        <img src="{{items.imageURL}}" class="card-img-top" alt="{{items.name}}">
-                        <div class="card-body">
-                            <h5 class="card-title">{{items.name}}</h5>
-                            <p class="card-text text-muted">$ {{items.price}}</p>
-                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal{{items.id}}">
-                                View Details
-                            </button>
-                            <span id="cart-total"></span>
-                        </div>
-
-                        <!-- Modal -->
-                        <div class="modal fade" id="modal{{items.id}}" tabindex="-1" aria-labelledby="modalLabel{{items.id}}" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="modalLabel{{items.id}}">Product Details</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="container">
-                                            <div class="row">
-                                                <div class="col-md-4">
-                                                    <img src="{{items.imageURL}}" class="img-fluid" alt="{{items.name}}">
-                                                </div>
-                                                <div class="col-md-8">
-                                                    <p><strong>Title:</strong> {{items.name}}</p>
-                                                    <p><strong>Price:</strong> $ {{items.price}}</p>
-                                                    <p><strong>Category:</strong> {{items.category}}</p>
-                                                    <p>{{items.description}}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                  
-                        <!-- Add to Cart Section -->
-                        <div class="card-footer d-flex justify-content-between align-items-center no-gutter">
-                            {% if items|is_in_cart:request.session.cart %} 
-                            <div class="d-flex align-items-center ">
-                               <form action="/" method="POST" class="me-2">
-                                    {% csrf_token %}
-                                    <input hidden type="text" value="{{items.id}}" name="product">
-                                    <input hidden type="text" value="true" name="remove" class="form-control">
-                                    <input type="submit" class="btn btn-primary btn-sm" value="DEL -">
-                                </form>
-                                <span>{{items|cart_quantity:request.session.cart}} in cart</span>
-                                <form action="/" method="POST" class="ms-2">
-                                    {% csrf_token %}
-                                    <input hidden type="text" value="{{items.id}}" name="product" class="form-control">
-                                    <input type="submit" class="btn btn-primary btn-sm" value="ADD +">
-                                    {% comment %} {{items|cart_quantity:request.session.cart}} in cart {% endcomment %}
-                                </form> 
-                              
-                            </div>
-                              {% else %}  
-                            <form action="/" method="POST" class="w-100">
-                                {% csrf_token %}
-                                <input hidden type="text" value="{{items.id}}" name="product" class="form-control">
-                                <input type="submit" class="btn btn-primary form-control" value="Add to cart">
-                            </form>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
+      </div>
     </div>
-</div>
+  </div>
+</footer>
+
+
+<!-- jQuery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- Swiper JS -->
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-mQ93sKBIwmEaXr2toJ5poHHM+M8pQuB0Ifw8zQJwEyz43GK5nwh3dBzRPw6l0HUY" crossorigin="anonymous"></script>
+
+<!-- Swiper Initialization -->
+<script>
+  var swiper = new Swiper(".mySwiper", {
+    slidesPerView: 1,
+    spaceBetween: 10,
+    loop: true,
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
+    },
+    breakpoints: {
+      600: {
+        slidesPerView: 2,
+        spaceBetween: 20,
+      },
+      1000: {
+        slidesPerView: 4,
+        spaceBetween: 30,
+      }
+    }
+  });
+</script>
+
 
 
 {% endblock %}
+
+
