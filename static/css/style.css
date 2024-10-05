@@ -126,11 +126,7 @@ body {
         margin-bottom: 20px;
     }
     
-    .btn-primary {
-        background-color: #000;
-        border-color: #000;
-        width: 100%;
-    }
+   
     
     .btn-primary:hover {
         background-color: #333;
@@ -307,8 +303,8 @@ body {
 }
 
 .cart-btn:hover {
-    background-color: #ffffff;
-    color: rgb(0, 0, 0);
+    background-color: #0f4100;
+    color: rgb(255, 255, 255);
 }
 
 .buy-now-btn {
@@ -405,15 +401,33 @@ body {
 /* for filter headings  */
 .filterheading{
     margin-top: 12px;
-    background-color: rgb(243, 243, 243);
 }
 
 
 
 /* navbar setting  */
-.listpro{
-    margin-right: 10px;
-}
+
+
 .rounded-circle{
     border: black solid 2px;
 }
+  /* Optional: Adjust if you want padding on both sides */
+
+
+.addreviewbtn{
+    float: right;
+    position: absolute;
+    right: 30px;
+    top:-20px
+}
+.reviewsection{
+    position: relative;
+    
+} 
+
+
+
+
+
+
+/* for reviews  */

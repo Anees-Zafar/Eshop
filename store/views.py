@@ -12,7 +12,7 @@ from django.core.mail import send_mail
 from Eshop.settings import EMAIL_HOST_USER
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
-from django.db.models import Min , Max
+from django.db.models import Max,Min,Avg,Count
 import hashlib
 from django.utils.html import strip_tags
 
@@ -40,6 +40,8 @@ class Index(View):
 
 # shop view 
 def shop(request):
+    if 'cartdata' not in request.session:
+            request.session['cartdata'] = {}
     product =  Products.objects.all()
     collection=Products.objects.distinct().values('category__name', 'category__id')
     color=ProductAttribute.objects.distinct().values('color__title', 'color__id' , 'color__color_code')
@@ -75,21 +77,75 @@ def shop(request):
     
 def base(request):
     customer_id = request.session.get('customer_id')
-    profile=Profile.objects.filter(customer=customer_id)
+    profile=Profile.objects.filter(customer=customer_id).first()
     print(profile)
     return render(request , 'base.html' , {'profile':profile})
 
 
 def productdetail(request,product_id):
+    if 'cartdata' not in request.session:
+            request.session['cartdata'] = {}
     product = Products.objects.get(id=product_id)
     color = ProductAttribute.objects.filter(product=product).values('color__id', 'color__title', 'color__color_code').distinct()
     
+    
     size = ProductAttribute.objects.filter(product=product).values('size__id', 'size__title' , 'price' , 'color__id').distinct()
+    
+    # for taking profile image 
     customer_id = request.session.get('customer_id')
     profile=Profile.objects.filter(customer=customer_id)
-    context = {  'detail':product , 'color':color , 'size':size , 'profile':profile}
 
+    # for taking revies and its conditions 
+    reviewCheck=Reviews.objects.filter(customer=customer_id,product=product).count()
+    review=Reviews.objects.filter(product=product)
+    avg_reviews = Reviews.objects.filter(product=product).aggregate(avg_rating=Avg('stars'))
+
+
+    context = {'reviewCheck':reviewCheck, 'avg_reviews':avg_reviews, 'detail':product , 'color':color , 'size':size , 'profile':profile , 'review':review}
+    
     return render(request,'productdetail.html', context )
+
+
+def addreview(request):
+    if request.method == 'GET':
+        # Retrieve data from the GET request
+        product_id = request.GET.get('id')
+        title = request.GET.get('title')
+        stars = request.GET.get('stars')
+
+        # Get the product object
+        product = get_object_or_404(Products, id=product_id)
+
+        # Get the customer ID from the session
+        customer_id = request.session.get('customer_id')
+        customer = get_object_or_404(Customer, id=customer_id)
+
+        # Add the review
+        new_review = Reviews(
+            customer=customer,
+            product=product,
+            title=title,
+            stars=int(stars),  # Ensure stars is an integer
+        )
+        new_review.save()
+
+        # Prepare data for the response
+        data = {
+            'user_name': customer.first_name,  # Assuming Customer model has a 'name' field
+            'review_text': title,
+            'review_rating': int(stars),
+            'date': new_review.date.strftime('%b. %d, %Y')   # Adding current time in the response
+        }
+
+        # Fetch the average rating for the product
+        avg_reviews = Reviews.objects.filter(product=product).aggregate(avg_rating=Avg('stars'))
+
+        # Return the response as JSON
+        return JsonResponse({'bool': True, 'data': data, 'avg_reviews': avg_reviews})
+
+    return JsonResponse({'bool': False, 'message': 'Invalid request method'})
+
+
 
 
 def filterproducts(request):
@@ -139,13 +195,14 @@ def addtocart(request):
     product_id = request.GET['id']
     size = request.GET['size']
     color = request.GET['color']
-    
+    print(product_id)
     # Generate a unique key by hashing the product ID, size, and color
     unique_key = hashlib.md5(f"{product_id}_{size}_{color}".encode()).hexdigest()
 
     # Prepare the product data
     cart_p = {
         unique_key: {
+            'product_id':product_id,
             'title': request.GET['title'],
             'qty': int(request.GET['qty']),
             'price':float(request.GET['price'].replace('$', '')), 
@@ -254,6 +311,8 @@ def updatecartqty(request):
 class Malecatageory(View):
  
     def get(self , request):
+        if 'cartdata' not in request.session:
+            request.session['cartdata'] = {}
         product = Products.get_all_products_by_id(1)
         collection=Products.objects.distinct().values('category__name', 'category__id')
         color=ProductAttribute.objects.distinct().values('color__title', 'color__id' , 'color__color_code')
@@ -292,6 +351,8 @@ class Malecatageory(View):
 @method_decorator(csrf_protect, name='dispatch')
 class Femalecatageory(View):
     def get(self , request):
+        if 'cartdata' not in request.session:
+            request.session['cartdata'] = {}
         product = Products.get_all_products_by_id(2)
         collection=Products.objects.distinct().values('category__name', 'category__id')
         color=ProductAttribute.objects.distinct().values('color__title', 'color__id' , 'color__color_code')
@@ -330,6 +391,8 @@ class Kidcatageory(View):
     
 
     def get(self , request):
+        if 'cartdata' not in request.session:
+            request.session['cartdata'] = {}
         product = Products.get_all_products_by_id(3)
         collection=Products.objects.distinct().values('category__name', 'category__id')
         color=ProductAttribute.objects.distinct().values('color__title', 'color__id' , 'color__color_code')
@@ -626,59 +689,116 @@ def checkout(request):
         adress = request.POST.get('adress')
         phone = request.POST.get('phone')
         customer_id = request.session.get('customer_id')
-        cart = request.session.get('cart')
-        products = Products.det_product_by_id(list(cart.keys()))
+        payment_method = request.POST.get('payment_method')
+        totalAmt= request.POST.get('totalprice')
 
-        print(adress, phone, customer_id, cart, products)
 
+        if payment_method == 'true':
+            is_paypal = True
+        else:
+            is_paypal = False
         
-        for product in products:
-            order = Order(
-                customer=Customer(id=customer_id),
-                product=product,
-                price=product.price,
-                adress=adress,
-                phone=phone,
-                quantity=cart.get(str(product.id))
-            )
-            order.save()
-        request.session['cart'] = {} 
+        cart = request.session.get('cartdata')
+        if not cart:
+            return JsonResponse({'error': 'No items in cart'}, status=400)
+
+        # Retrieve product IDs from the cart
+        product_ids = [item['product_id'] for item in cart.values()]
+        products = Products.det_product_by_id(product_ids)
+
+
+        # creating cart order 
+        cartorder=CartOrder(
+				customer=Customer(id=customer_id),
+				total_price=float(totalAmt),
+                paid_status=is_paypal
+			)
+        cartorder.save()   
+
+        # Create the orders based on the items in the cart
+        for unique_key, item in cart.items():
+            # Find the product using the product_id in the item
+            product = next((p for p in products if p.id == int(item['product_id'])), None)
+
+            if product:  # Ensure the product exists
+                color_obj = Color.objects.get(id=item['color'])  # Use get() to retrieve a single object
+                color = color_obj.title
+                order = Order(
+                    order=cartorder,
+                    customer=Customer(id=customer_id),
+                    product=product,
+                    price=item['price'],
+                    adress=adress,
+                    phone=phone,
+                    quantity=item['qty'],
+                    color=color,
+                    size=item['size'],
+                    total_price=item['qty'] * float(item['price']) 
+                )
+                order.save() 
+        request.session['cartdata'] = {} 
         if request.session.modified:
              print (True)  
 
        
-        return redirect('orders')  
+        return redirect('showorderconfirm')
+
+    else:
+        cart_data = request.session.get('cartdata', {})
+        total_price = 0
+        updated_cart_data = {}
+
+        for key, item in cart_data.items():
+            # Get product details from the database using the product title (or use an ID if available)
+            try:
+                products = Products.objects.filter(name=item['title'])
+                if products.exists():
+                    product = products.first()
+                else:
+                    continue      # Assuming key is the product ID
+                color = Color.objects.get(id=item['color'])  # Assuming the color ID is stored in session
+                item_price = float(item['price'])
+                item['total_price'] = int(item['qty']) * item_price
+                total_price += item['total_price']
+
+                # Add the product image and color to the session data
+                item['image'] = product.image.url
+                item['color_code'] = color.color_code
+                item['color_title'] = color.title
+                updated_cart_data[key] = item
+
+            except Products.DoesNotExist:
+                continue
+            except Color.DoesNotExist:
+                continue
+        customer_id = request.session.get('customer_id')
+        profile=Profile.objects.filter(customer=customer_id)
+        context = {
+            'cart_data': updated_cart_data,
+            'total_price': total_price,
+            'profile':profile
+        }
+        return render(request, 'checkout.html', context)  
       
     
         
 
         
-
+def showorderconfirm(request):
+    customer_id = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customer_id)
+    return render(request , 'showorderconfirm.html' , {'profile':profile})
 
 
 
 
             
        
-def orders(request):
-    customerlogin = request.session.get('customer_id')
-    profile=Profile.objects.filter(customer=customerlogin)
-
-    orderitems = Order.get_orders(customerlogin)
-    return render(request, 'orders.html', {'orderitems': orderitems , 'profile':profile})
 
 
 
-def paypalpage(request):
-    return render(request , 'paypal.html')
 
 
-
-def paypal_success(request):
-    return HttpResponse("Payment completed successfully!")
-
-def paypal_failed(request):
-    return HttpResponse("Payment failed. Please try again.")
 
 
 
@@ -821,28 +941,7 @@ def profiledeletepage(request):
         
 
 
-  # Use csrf_exempt only for testing; it should be removed in production
-# def profile_edit_view(request):
-#     if request.method == 'POST':
-#         address = request.POST.get('address')
-#         about = request.POST.get('about')
-        
-#         cover_photo = request.FILES.get('cover_photo')
-#         profile_photo = request.FILES.get('profile_photo')
-
-#         # Assuming you have a Profile model linked to the user
-#         profile = request.user.profile
-#         profile.address = address
-#         profile.about = about
-        
-#         if cover_photo:
-#             profile.cover_photo = cover_photo
-#         if profile_photo:
-#             profile.profile_photo = profile_photo
-        
-#         profile.save()
-
-#         return JsonResponse({'success': True}) 
+ 
 
 @csrf_exempt
 def search(request):
@@ -852,3 +951,112 @@ def search(request):
     customerlogin = request.session.get('customer_id')
     profile=Profile.objects.filter(customer=customerlogin)
     return render(request , 'search.html' , {'search_result':search_result , 'search':search , 'profile':profile})
+
+
+
+
+
+
+
+# dashboard view 
+def dashboard(request):
+    customerlogin = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customerlogin)
+    customerlogin = request.session.get('customer_id')
+
+    # Get orders for the logged-in customer
+    orders = CartOrder.objects.filter(customer_id=customerlogin)
+
+    # Group orders by date and count them
+    order_data = orders.values('date').annotate(order_count=Count('id'))
+
+    # Extract data for chart.js
+    labels = [entry['date'].strftime('%Y-%m-%d') for entry in order_data]  # Dates as labels
+    data = [entry['order_count'] for entry in order_data]  # Order counts
+
+    context = {
+        'profile':profile,
+        'labels': labels,
+        'data': data,
+    }
+
+    return render(request, 'dashboard.html', context)
+
+
+def cartorder(request):
+    customerlogin = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customerlogin)
+    customer = Customer.objects.get(id=customerlogin)
+    orders=CartOrder.objects.filter(customer=customer)
+
+    orders_with_items = []
+    for order in orders:
+        order_items_count = Order.objects.filter(order=order).count()
+        orders_with_items.append({
+            'order': order,
+            'item_count': order_items_count
+        })
+    
+    context = {
+        'profile': profile,
+        'customer': customer,
+        'orders_with_items': orders_with_items,  # Pass the orders with item count to the template
+    }
+    return render(request , 'cartorder.html', context)
+
+
+
+def my_order_items(request, id):
+    customerlogin = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customerlogin)
+    
+    # Get the specific order
+    try:
+        orders = CartOrder.objects.get(pk=id)
+    except CartOrder.DoesNotExist:
+        orders = None  # Handle this case as well
+    
+    # Fetch order items if the order exists
+    if orders:
+        orderitems = Order.objects.filter(order=orders)
+    else:
+        orderitems = []
+
+    firstitem=orderitems.first()    
+
+    context = {
+        'order':orders,
+        'profile': profile,
+        'orderitems': orderitems,
+        'firstitem':firstitem
+    }
+
+    return render(request, 'orders.html', context)
+
+def cancelorder(request):
+    order_id = request.GET.get('order_id')
+    print('this is order',order_id)
+    customerlogin = request.session.get('customer_id')
+    order = get_object_or_404(CartOrder, id=order_id, customer=customerlogin)
+
+    # Check if the order can be canceled
+    if order.can_cancel:
+        order.order_status = 'canceled'  # Set the order status to 'canceled'
+        order.save()
+        return JsonResponse({'status': 'success', 'message': 'Your order has been canceled successfully.'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'The cancellation period has expired for this order.'})
+   
+
+
+def reviewspage(request):
+    customerlogin = request.session.get('customer_id')
+    profile=Profile.objects.filter(customer=customerlogin)
+
+    # Fetch reviews made by the logged-in customer
+    customer_reviews = Reviews.objects.filter(customer_id=customerlogin)
+    context = {
+        'profile': profile,
+        'customer_reviews':customer_reviews
+    }
+    return render(request, 'reviewspage.html' , context) 

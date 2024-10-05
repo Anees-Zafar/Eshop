@@ -17,6 +17,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Bootstrap JS (required for carousel functionality) -->
+
     
 </head>
 <body>
@@ -46,20 +47,20 @@
     {% comment %} full page preloader ends {% endcomment %}
 
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light ">
         <div class="container-fluid">
             <!-- Logo -->
             <a class="navbar-brand" href="{% url 'index' %}">
                 <b>ESHOP</b>
             </a>
     
-             <!-- Mobile Toggle Button -->
-             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <!-- Mobile Toggle Button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
     
-            <!-- Navbar Links -->
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <!-- Center Search Form -->
+            <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="{% url 'index' %}">Home</a>
@@ -76,70 +77,75 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'kid' %}">Kids</a>
                     </li>
-                  
                 </ul>
-                
+    
                 <!-- Search Form -->
-                <form class="d-flex me-5" method="POST" action="/search">
+                <form class="d-flex mx-auto" method="POST" action="/search" style="width: 400px;">
                     {% csrf_token %}
                     <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
                     <button class="btn btn-outline-success" type="submit">Search</button>
                 </form>
     
-                <!-- Cart, Profile Picture & User Account Links -->
-                <ul class="navbar-nav   mb-lg-0 d-flex">
-                    <li class="nav-item mt-2">
-                        <a class="nav-link" href="{% url 'cart' %}">
-                            <i class="fas fa-shopping-cart"></i> 
-                            <span id="cart-total" class="badge bg-dark">{{ request.session.cartdata|length }}</span>
+                <!-- Cart and Profile Section -->
+                <ul class="navbar-nav ms-auto d-flex align-items-center">
+                    <!-- Cart -->
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{% url 'cart' %}">
+                            <i class="fas fa-shopping-cart fa-lg"></i> 
+                            <span id="cart-total" class="badge rounded-pill bg-danger position-absolute top-3 start-95 translate-middle">{{ request.session.cartdata|length }}</span>
                         </a>
                     </li>
     
+                    <!-- Profile Section -->
                     {% if request.session.customer_id %}
-
-                  
-                    
-                    <li class="nav-item dropdown listpro">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <!-- Profile Picture -->
+                    <li class="nav-item dropdown ms-4">
+                        <a class="nav-link  d-flex align-items-center" href="{% url 'dashboard' %}" id="navbarDropdown" >
                             {% if profile.exists %}
-                            <img src="{{ profile.first.profile_photo.url }}" alt="Profile Picture" width="45" height="45" class="rounded-circle">
+                            <img src="{{ profile.first.profile_photo.url }}" alt="Profile Picture" width="40" height="40" class="rounded-circle ">
                             {% else %}
-                            <img src="{% static '/images/eshop-profile-cover-photo.jpg' %}" alt="Profile Picture" width="45" height="45" class="rounded-circle">
+                            <img src="{% static '/images/profile-photo.jpg' %}" alt="Profile Picture" width="40" height="40" class="rounded-circle ">
                             {% endif %}
+                            
                         </a>
-                        <ul class="dropdown-menu listpro" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{% url 'customerprofile' %}">Profile</a></li>
-                            <li ><a class="dropdown-item" href="{% url 'orders' %}">Orders</a></li>
-                            <li ><a class="dropdown-item" href="{% url 'todo' %}">TODOS</a> </li>
-                            <li><a class="dropdown-item bg-dark text-light" href="{% url 'logout' %}">Logout</a></li>
-                          
-                        </ul>
+                        
                     </li>
-                    
-
                     {% else %}
-
-
-
+                    <!-- Login and Signup -->
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'login' %}">Login</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'signup' %}">Signup</a>
                     </li>
-
-
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
-
     {% block content %}
     {% endblock %}
 
-
+<!-- Footer Section -->
+<footer class="bg-dark text-white py-4">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5>About Us</h5>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <h5>Contact Us</h5>
+          <p>Email: support@example.com</p>
+          <p>Phone: +1 234 567 890</p>
+          <div>
+            <a href="#" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
     
 
 

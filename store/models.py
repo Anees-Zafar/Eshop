@@ -1,5 +1,7 @@
 from django.db import models
 import datetime
+from datetime import timedelta
+from django.utils import timezone
 
 class Category(models.Model):
     name=models.CharField(max_length=50)
@@ -91,15 +93,45 @@ class Customer(models.Model):
             return Customer.objects.get(email=email)
         except:
             return False    
+        
+
+
+# Order
+status_choice=(
+        ('process','In Process'),
+        ('shipped','Shipped'),
+        ('delivered','Delivered'),
+        ('canceled', 'Canceled')
+    )
+class CartOrder(models.Model):
+    customer=models.ForeignKey(Customer,on_delete=models.CASCADE)
+    total_price = models.IntegerField(blank=True, null=True)
+    paid_status=models.BooleanField(default=False)
+    date=models.DateField(default=datetime.datetime.today)
+    order_status=models.CharField(choices=status_choice,default='process',max_length=150)
+
+    def __str__(self):
+        return str(self.customer)	
+    
+      # Check if the order can be canceled (within 24 hours and status is 'process')
+    @property
+    def can_cancel(self):
+        cancel_time_limit = timedelta(hours=24)  # Time limit for order cancellation (24 hours)
+        return timezone.now().date() <= (self.date + cancel_time_limit) and self.order_status == 'process'
+
 
 	
 class Order(models.Model):
+    order=models.ForeignKey(CartOrder,on_delete=models.CASCADE , null=True)
     product=models.ForeignKey(Products, on_delete=models.CASCADE)
     customer=models.ForeignKey(Customer, on_delete=models.CASCADE)
     quantity=models.IntegerField(default=1)
     price=models.IntegerField()
     adress=models.CharField(max_length=500 , default="")
     phone=models.CharField( max_length=50, default="")
+    color = models.CharField(max_length=30, blank=True, null=True)
+    size = models.CharField(max_length=30, blank=True, null=True)
+    total_price = models.IntegerField(blank=True, null=True)
     status=models.BooleanField(default=False)
 
     date=models.DateField(default=datetime.datetime.today)
@@ -144,3 +176,15 @@ class Todo(models.Model):
     @staticmethod
     def get_todos(customer_id):
         return Todo.objects.filter(customer = customer_id).order_by('-date')
+    
+
+
+class Reviews(models.Model):
+    customer=models.ForeignKey(Customer, on_delete=models.CASCADE)
+    product=models.ForeignKey(Products, on_delete=models.CASCADE)
+    title=models.CharField(max_length=800 , default="")
+    stars = models.IntegerField(blank=True, null=True)
+    date=models.DateField(default=datetime.datetime.today)
+
+    def __str__(self):
+        return str(self.customer)

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}
+<title>Orders</title>
+
+
+<style>
+    .text-center2{
+        text-align:center;
+        margin-bottom:20px;
+    }
+
+    .text-center3{
+        text-align:center;
+        margin-bottom:20px;
+        width: 200px;
+    }
+    .cardanker{
+        text-decoration: none;
+        color: black;
+    }
+    .cardanker:hover{
+        color:black;
+    }
+
+    .footeroscarddata{
+        text-align:center;
+    }    
+    .canceled-text {
+        text-decoration: line-through;
+        
+    }
+    
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<!-- Custom CSS for Dashboard -->
+
+
+{% include "dashboarduper.html" %}
+
+        <!-- Dashboard Content Section -->
+        <div class="col-lg-9">
+            <div class="row">
+                {% for item in orders_with_items %}
+                <div class="col-md-12  ">
+                    <div class="card cart-item {% if item.order.order_status == 'canceled' %}canceled-text{% endif %}" id="order-card-{{ item.order.id }}">
+                        <a class="cardanker canceltext " href="my_order_items/{{item.order.id}}">
+                        <div class="card-body bodyofcard">
+                            <div class="row">
+                                <h3 class="text-center2">Order No #{{ forloop.counter }}</h3>
+
+                                <div class="col-md-4 col-6 "> <!-- Use col-md-6 for desktop and col-12 for mobile -->
+                                    <div class="cart-item-details">
+                                        <h5><strong>Order Total:</strong><br> <span class='text-danger'>${{ item.order.total_price }} {{item.order.id}}</span></h5>
+                                    </div>
+                                    
+                                    <input type="hidden" id="cartorderid-{{ item.order.id }}" value="{{ item.order.id }}">
+                                </div>
+                                <div class="col-md-4 col-6"> <!-- Use col-md-6 for desktop and col-12 for mobile -->
+                                    
+                                    <div class="cart-item-details">
+                                        <h5><strong>Order Items:</strong> <span class='text-danger'>{{item.item_count}}</span></h5>
+                                    </div>
+                                    <p class='mt-1'><strong>Date:</strong> {{ item.order.date }}</p>
+
+                                </div>
+                             
+                                <div class="col-md-4 col-12"> <!-- Same here for responsive design -->
+                                    <p><strong>Status:</strong> {{ item.order.get_order_status_display }}</p>
+                                    <p><strong>Paid: </strong> 
+                                        {% if item.order.paid_status %}
+                                        Paid
+                                        {% else %}
+                                        Unpaid
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class='footeroscarddata'>
+                            <button class="text-center3 btn ">More Details</button>
+                            {% if item.order.order_status == 'canceled' %}
+                            {% else %}
+                            {% if item.order.can_cancel %}
+                            <p>you will cancel your order in 24 hours after placing order:<a class='cancel-order-btn' href="">cancel Order</a></p>
+                            {% endif %}
+                            {% endif %}
+                            
+
+                        </div>
+                        </div>
+                    </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+   
+{% include "dashboardlower.html" %}
+
+
+<script>
+    $('.cancel-order-btn').on('click', function (e) {
+        e.preventDefault();  // Prevent the default behavior of the link
+    
+        var orderId = $(this).closest('.card').find('input[type="hidden"]').val();
+        var cardId = '#order-card-' + orderId;
+        console.log(orderId);
+        
+        // Confirm cancellation
+        if (confirm('Are you sure you want to cancel this order?')) {
+            $.ajax({
+                url: "{% url 'cancelorder' %}",
+                data: {
+                    'order_id': orderId,
+                },
+                success: function (response) {
+                    if (response.status === 'success') {
+                        // Update the card to show it as canceled
+                        $(cardId).find('.row').addClass('canceled-text');
+                        $(cardId).find('.cancel-order-btn').remove();
+                        alert(response.message);  // Success message
+                    } else {
+                        alert(response.message);  // Error message
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('An error occurred while processing your request.');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

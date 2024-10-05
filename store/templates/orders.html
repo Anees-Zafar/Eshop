@@ -3,51 +3,64 @@
 {% load cart %}
 
 {% block title %}
-<title>Cart Page</title>
+<title>Order Details</title>
+
+<style>
+    .canceled-text {
+        text-decoration: line-through;
+        border:1px solid red;
+        
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center mb-4">Your Orders Detail</h2>
-    <div class="row justify-content-center">
-        <div class="col-12">
-            <table class="table table-bordered table-striped table-hover align-middle text-center">
-                <thead class="table-dark ">
-                    <tr>
-                        <th>Serial</th>
-                        <th>Product Image</th>
-                        <th>Product Name</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Order Date</th>
-                        <th>Total</th>
-                        <th>Order Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for cartitems in orderitems %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>
-                            <img src="{{ cartitems.product.imageURL }}" class="img-fluid" style="width: 80px;" alt="{{ cartitems.product.name }}">
-                        </td>
-                        <td>{{ cartitems.product.name }}</td>
-                        <td>${{ cartitems.product.price }}</td>
-                        <td>{{ cartitems.quantity }}</td>
-                        <td>{{ cartitems.date }}</td>
-                        <td>${{ cartitems.quantity|order_product_total:cartitems.product.price }}</td>
-                        <td>
-                            {% if cartitems.status %}
-                            <span class="badge bg-success">Completed</span>
-                            {% else %}
-                            <span class="badge bg-warning text-dark">Pending</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+{% include "dashboarduper.html" %}
+
+<!-- Order Details Section -->
+<div class="col-lg-9">
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Your Order Details</h2>
+        <div class="row justify-content-center">
+            <!-- Order and Shipping Information -->
+            <div class="col-12 mb-4 ">
+                <div class="card p-3 shadow-sm {% if order.order_status == 'canceled' %}canceled-text{% endif %} ">
+                    <h4 class="mb-3">Shipping Information</h4>
+                    <p><strong>Name:</strong> {{ order.customer.first_name }}</p>
+                    <p><strong>Email:</strong> {{ order.customer.email }}</p>
+                    <p><strong>Phone:</strong> {{ order.customer.phone }}</p>
+                    <p><strong>Address:</strong> {{ orderitems.first.adress }}</p>
+                    <p><strong>Order Date:</strong> {{ order.date }}</p>
+                    <p><strong>Status:</strong> 
+                        
+                        {{ order.get_order_status_display }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Product Details Section -->
+            {% for item in orderitems %}
+            <div class="col-12 mb-4">
+                <div class="card p-3 shadow-sm">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <img src="{{ item.product.imageURL }}" alt="{{ item.product.name }}" class="img-fluid rounded">
+                        </div>
+                        <div class="col-md-9">
+                            <h5 class="card-title"><strong>{{ item.product.name }}</strong></h5>
+                            <p class="mb-1"><strong>Price:</strong> ${{ item.price }}</p>
+                            <p class="mb-1"><strong>Quantity:</strong> {{ item.quantity }}</p>
+                            <p class="mb-1"><strong>Size:</strong> {{ item.size }}</p>
+                            <p class="mb-1"><strong>Color:</strong> {{ item.color }}</p>
+                            <p class="mb-1"><strong>Total Price:</strong> ${{ item.total_price }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
+
+{% include "dashboardlower.html" %}
 {% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Login</title>
+
+
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+    }
+    .container123 {
+        max-width: 800px;
+        margin: 50px auto;
+        background-color: white;
+        padding: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border-radius: 10px;
+    }
+    .container h1 {
+        color: #28a745;
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+    }
+    .container p {
+        color: #555;
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+    }
+    .container .order-success-icon {
+        font-size: 50px;
+        color: #28a745;
+        margin-bottom: 20px;
+    }
+    .buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    .buttons a {
+        text-decoration: none;
+        font-size: 1rem;
+        color: white;
+        background-color: #007bff;
+        padding: 12px 30px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+    .buttons a.see-order {
+        background-color: #28a745;
+    }
+    .buttons a:hover {
+        background-color: #0056b3;
+        color:white;
+    }
+    .buttons a.see-order:hover {
+        background-color: #218838;
+        color:white;
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="container container123 ">
+    <div class="order-success-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    <h1>Order Confirmed!</h1>
+    <p>Thank you for your order. Your order has been placed successfully. We will notify you when your order is ready for delivery.</p>
+    
+    <div class="buttons">
+        <a href="/" class="continue-shopping">Continue Shopping</a>
+        <a href="{% url 'cartorder' %}" class="see-order">See Order Details</a>
+    </div>
+</div>
+{% endblock %}

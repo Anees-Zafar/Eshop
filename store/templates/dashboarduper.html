@@ -1,0 +1,166 @@
+
+{% load static %}
+<style>
+    /* Sidebar Styling */
+    .filter-sidebar {
+        background-color: rgb(243, 243, 243);
+        padding: 20px;
+        border-right: 1px solid #ddd;
+    }
+
+    .imagesidebar {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .imagesidebar img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .imagesidebar h3 {
+        margin-top: 15px;
+    }
+
+    .list-group-item-action {
+        padding: 15px 20px;
+        font-size: 18px;
+        color: #333;
+    }
+
+    .list-group-item-action:hover {
+        background-color: lightgray;
+       
+    }
+
+    /* Dashboard Card Styling */
+    .card {
+        border-radius: 10px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .cart-item-details h5 {
+        font-size: 1.25rem;
+        margin-bottom: 5px;
+    }
+
+    .cart-item .text-center {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    /* Mobile Sidebar */
+    .filter-sidebar-mobile {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        width: 250px;
+        height: 100%;
+        background-color: #f8f9fa;
+        z-index: 1050;
+        transition: all 0.3s ease;
+        padding: 20px;
+    }
+
+    .filter-sidebar-mobile.active {
+        left: 0;
+    }
+
+    .close-sidebar {
+        cursor: pointer;
+        font-size: 24px;
+        font-weight: bold;
+        text-align: right;
+        margin-bottom: 10px;
+    }
+
+    /* Banner Styling */
+ 
+
+  
+
+  
+
+    @media (min-width: 1000px){
+        .imagesidebar{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cameraicon{
+            position: relative;
+            top:-10px ;
+            left:40px;
+            color:black;
+        }
+        .namesidebar{
+            margin-top:-20;
+            padding:0;
+        }
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+        .filter-sidebar {
+            display: none;
+        }
+
+        .filter-sidebar-mobile {
+            display: block;
+        }
+    }
+</style>
+
+
+
+
+
+
+
+
+<!-- Banner Section -->
+<div class="banner-section banner text-center py-5" style="">
+    <h1>Dashboard</h1>
+    <p>Home / Dashboard</p>
+</div>
+
+<!-- Filter Toggle Button for Mobile -->
+<div class="container d-lg-none mb-3">
+    <button class="btn btn-primary w-100" id="toggleFilters"><span class="navbar-toggler-icon"></span> Filters</button>
+</div>
+
+<!-- Main Content Section -->
+<div class="container shop-container">
+    <div class="row">
+        <!-- Sidebar: Filter Section -->
+        <div class="col-lg-3 mb-4 filter-sidebar d-none d-lg-block">
+            <div class="list-group list-group-flush imagesidebar">
+                {% if profile.exists %}
+                <img src="{{ profile.first.profile_photo.url }}" alt="Profile Picture">
+                {% else %}
+                <img src="{% static '/images/profile-photo.jpg' %}" alt="Profile Picture" >
+                {% endif %}
+
+                <a href="{% url 'profileeditpage' %}" class='cameraicon'><i class="fas fa-camera"></i></a>
+                <h3 class='namesidebar'>{{customer.first_name}} {{customer.last_name}}</h3>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action mt-2">Dashboard</a>
+                <a href="{% url 'customerprofile' %}" class="list-group-item list-group-item-action mt-2">Profile</a>
+                <a href="{% url 'cartorder' %}" class="list-group-item list-group-item-action mt-2">Orders</a>
+                <a href="{% url 'reviewspage' %}" class="list-group-item list-group-item-action mt-2">Reviews</a>
+                <a href="{% url 'todo' %}" class="list-group-item list-group-item-action mt-2">TODOS</a>
+                <a href="{% url 'logout' %}" class="list-group-item list-group-item-action mt-2">Logout</a>
+
+            </div>
+        </div>
+
+       

@@ -11,7 +11,7 @@ window.addEventListener('load', function () {
     // Optional: You can completely remove the preloader from the DOM after the transition
     setTimeout(function () {
         preloader.style.display = 'none';
-    }, 500);  // Match the duration with the transition time (0.5s)
+    }, 100);  // Match the duration with the transition time (0.5s)
 });
 
 
@@ -210,8 +210,8 @@ $(document).ready(function() {
                 _vm.attr('disabled', true);
             },
             success: function(res) {
-                $("#cart-total").text('res.totalitems ');
-                window.location.href = "/cart";
+                $("#cart-total").text(res.totalitems);
+                // window.location.href = "/cart";
                 console.log(res);
                 _vm.attr('disabled', false);
             }
@@ -231,3 +231,8 @@ $(document).ready(function() {
     document.querySelector('.close-sidebar').addEventListener('click', function() {
         document.querySelector('.filter-sidebar-mobile').style.display = 'none';
     });
+
+
+
+
+   

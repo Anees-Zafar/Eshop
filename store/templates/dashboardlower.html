@@ -1,0 +1,35 @@
+</div>
+</div>
+
+<!-- Filter Sidebar for Mobile (Hidden by default) -->
+<div class="filter-sidebar-mobile d-lg-none">
+    <div class="close-sidebar">X</div>
+    <div class="filter-content">
+        <div class="list-group list-group-flush imagesidebar">
+            <img src="{{ profile.first.profile_photo.url }}" alt="Profile Picture">
+            <a href="{% url 'profileeditpage' %}"><i class="fas fa-camera"></i></a>
+            <h3>{{customer.first_name}}</h3>
+        </div>
+        <div class="list-group list-group-flush">
+            <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action mt-2">Dashboard</a>
+            <a href="{% url 'customerprofile' %}" class="list-group-item list-group-item-action mt-2">Profile</a>
+            <a href="{% url 'cartorder' %}" class="list-group-item list-group-item-action mt-2">Orders</a>
+            <a href="{% url 'reviewspage' %}" class="list-group-item list-group-item-action mt-2">Reviews</a>
+            <a href="{% url 'todo' %}" class="list-group-item list-group-item-action mt-2">TODOS</a>
+            <a href="{% url 'logout' %}" class="list-group-item list-group-item-action mt-2">Logout</a>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mobile filter toggle
+    document.getElementById("toggleFilters").addEventListener("click", function() {
+        document.querySelector(".filter-sidebar-mobile").classList.toggle("active");
+    });
+
+    // Close mobile sidebar
+    document.querySelector(".close-sidebar").addEventListener("click", function() {
+        document.querySelector(".filter-sidebar-mobile").classList.remove("active");
+    });
+</script>

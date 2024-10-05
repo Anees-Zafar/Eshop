@@ -1,12 +1,78 @@
 {% extends "base.html" %}
-
+{% load cart %}
 {% block title %}
 <title>Product Details</title>
+
+
+<style>
+    .colorflex {
+        display: flex;
+        list-style: none;
+        padding: 0;
+    }
+    
+    .colorflex li {
+        margin-right: 10px;
+    }
+    
+    .sizeflex {
+        display: flex;
+        list-style: none;
+        padding: 0;
+    }
+    
+    .sizeflex li {
+        margin-right: 10px;
+    }
+    
+    .review {
+        margin-bottom: 20px;
+    }
+    
+    .card {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+    }
+
+
+    .swiper-slide {
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+    }
+    
+    .rating i {
+        color: #FFD700; /* Gold color for stars */
+    }
+    
+    #reviewModal .modal-header {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    #reviewModal .btn-close {
+        color: white;
+    }
+    
+    #reviewModal .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+</style>
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css" />
+
 
 {% endblock %}
 
 {% block content %}
-<div class="container my-5">
+<div class="container my-5 p-5">
     <div class="row">
         <div class="col-lg-6 col-md-12">
             <!-- Product Image -->
@@ -59,5 +125,154 @@
         </div>
     </div>
 </div>
+
+
+
+   <!-- Review Section -->
+<div class="container reviewsection my-5">
+   
+    <h3>Customer Reviews {% if avg_reviews.avg_rating %} {{avg_reviews.avg_rating}}{% else %}0{% endif %}/5 <i class="text-warning fas fa-star" aria-hidden="true"></i>  <span> {% if request.session.customer_id %} {% if reviewCheck == 0 %} <button class="btn btn-warning mt-4 addreviewbtn" data-bs-toggle="modal" data-bs-target="#reviewModal">Write a Review</button> {% endif %}{% endif %}
+    </span></h3>
+
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper">
+            <!-- Dynamically populate reviews here -->
+            {% if review %}
+            {% for review in review %}
+            <div class="swiper-slide">
+                <div class="card p-3 shadow-sm">
+                    <h5 class="mb-0">{{ review.customer }}</h5>
+                    <small class="text-muted">{{ review.date }}</small>
+                    <p class="mt-2">{{ review.title }}</p>
+                    <div class="rating">
+                        {% for i in 5|get_range %}
+                        <i class="fa {% if review.stars < i %}far fa-star{% else %}fas fa-star{% endif %}" aria-hidden="true"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class='text-center  mt-5 py-3 container'>
+            <h4>This Product have no Reviews !</h4>
+            <p>So Please Enter Your Review </p>
+            </div>
+            {% endif %}
+        </div>
+        <!-- Swiper Pagination -->
+        <div class="swiper-pagination"></div>
+    </div>
+</div>
+
+<!-- Button to Open Modal -->
+
+<!-- Modal for Review Form -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewModalLabel">Submit Your Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Rating</label>
+                        <select class="form-select" id="stars" name="rating" required>
+                            <option value="5">5 - Excellent</option>
+                            <option value="4">4 - Good</option>
+                            <option value="3">3 - Average</option>
+                            <option value="2">2 - Poor</option>
+                            <option value="1">1 - Terrible</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        
+                        <input type="hidden"  value="{{ detail.id }}" id='product_id'>
+                        <label for="comment" class="form-label">Comment</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3" required></textarea>
+                    </div>
+                    <button id='addreview' type="submit" class="btn btn-primary">Submit Review</button>
+               
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+<script>
+    var swiper = new Swiper('.mySwiper', {
+        slidesPerView: 1,
+        spaceBetween: 10,
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+        autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+        },
+        breakpoints: {
+            440: {
+                slidesPerView: 2, // 2 cards on small devices
+                spaceBetween: 3,
+            },
+            768: {
+                slidesPerView: 2, // 2 cards on tablets
+                spaceBetween: 0,
+            },
+            1024: {
+                slidesPerView: 3, // 3 cards on larger screens
+                spaceBetween: 0,
+            },
+            1200: {
+                slidesPerView: 4, // 4 cards on desktops and large screens
+                spaceBetween: 0,
+            },
+        }
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('#addreview').on('click', function() {
+            // Get product details
+            
+            var productId = $("#product_id").val();
+            var title = $("#comment").val();
+            var stars = $("#stars").val();
+      
+            console.log(productId,title,stars);
+        
+            // Ajax
+            $.ajax({
+                url:'/addreview',
+                data:{
+                    'id':productId,
+                    'title':title,
+                    'stars':stars,
+                },
+                dataType:'json',
+            
+                success: function(response) {
+                    // Close the modal and show a success message
+                    
+                    // You can optionally reload the page or update the review section dynamically
+                    location.reload(); 
+
+                        
+                      
+                },
+    
+                error: function(error) {
+                    console.log(error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+            // End
+           });
+        });   
+</script>
 
 {% endblock %}

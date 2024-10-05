@@ -58,7 +58,7 @@
                     <hr>
                     <p><strong>Total Items: </strong>{{ cart_data|length }}</p>
                     <p id='cart-total-price'><strong>Total Price: </strong>${{ total_price }}</p>
-                    <button class="btn btn-primary btn-lg btn-block">Proceed to Checkout</button>
+                    <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg btn-block">Proceed to Checkout</a>
                 </div>
             </div>
         </div>

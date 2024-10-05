@@ -19,7 +19,6 @@
         position: relative;
         width: 100%;
         height: 300px;
-        background-color: #007bff;
         overflow: hidden;
     }
 
@@ -153,7 +152,22 @@
 
 {% block content %}
 
-<!-- Profile Header with Cover Photo -->
+
+
+
+
+
+
+
+<!-- Custom CSS for Dashboard -->
+
+
+{% include "dashboarduper.html" %}
+
+        <!-- Dashboard Content Section -->
+        <div class="col-lg-9">
+            <div class="row">
+                <!-- Profile Header with Cover Photo -->
 <div class="profile-header">
     {% if prodata %}
     <img src="{{ prodata.cover_photo.url }}" alt="Cover Photo" class="cover-photo">
@@ -226,6 +240,10 @@
     {% comment %} <a href="{% url 'profiledeletepage' %}" class="edit-profile-btn">Delete Profile</a> {% endcomment %}
     {% endif %}
 </div>
+            </div>
+        </div>
+   
+{% include "dashboardlower.html" %}
 
 <script>
     function confirmDelete() {

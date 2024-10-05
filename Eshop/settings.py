@@ -16,6 +16,8 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'store',
+    
   
    
 ]
@@ -133,4 +136,24 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'ranaanees038@gmail.com'
+EMAIL_HOST_PASSWORD = 'kxco queu geyo pdfa'
+
+
+
+
+# # paypal settting 
+# PAYPAL_RECEIVER_EMAIL = 'your-paypal-business-email@example.com'
+# PAYPAL_TEST = True 
+
+
+
+SESSION_COOKIE_SECURE = True  # Ensure sessions are only sent over HTTPS
+CSRF_COOKIE_SECURE = True  # Ensure CSRF tokens are only sent over HTTPS

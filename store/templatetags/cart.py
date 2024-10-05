@@ -73,3 +73,11 @@ def is_on_cart(product, cart):
     if product_id in cart:
         return True
     return False
+
+
+
+
+@register.filter
+def get_range(value):
+    """Returns a range of numbers from 1 to the specified value"""
+    return range(1, value + 1)
