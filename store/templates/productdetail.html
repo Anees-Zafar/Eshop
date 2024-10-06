@@ -131,7 +131,7 @@
    <!-- Review Section -->
 <div class="container reviewsection my-5">
    
-    <h3>Customer Reviews {% if avg_reviews.avg_rating %} {{avg_reviews.avg_rating}}{% else %}0{% endif %}/5 <i class="text-warning fas fa-star" aria-hidden="true"></i>  <span> {% if request.session.customer_id %} {% if reviewCheck == 0 %} <button class="btn btn-warning mt-4 addreviewbtn" data-bs-toggle="modal" data-bs-target="#reviewModal">Write a Review</button> {% endif %}{% endif %}
+    <h3>Customer Reviews {% if avg_reviews.avg_rating %} {{ avg_reviews.avg_rating|floatformat:1 }}{% else %}0{% endif %}/5 <i class="text-warning fas fa-star" aria-hidden="true"></i>  <span> {% if request.session.customer_id %} {% if reviewCheck == 0 %} <button class="btn btn-warning mt-4 addreviewbtn" data-bs-toggle="modal" data-bs-target="#reviewModal">Write a Review</button> {% endif %}{% endif %}
     </span></h3>
 
     <div class="swiper mySwiper">

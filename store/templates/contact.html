@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>Contact Us</title>
+
+<style>
+    .body-page {
+        background-color: #000;  /* Black background */
+    }
+    .contact-form {
+        background-color: #222;  /* Dark background for form */
+    }
+    .form-control::placeholder {
+        color: #aaa;  /* Grey placeholder text */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid body-page">
+<div class="container py-5 ">
+    <h2 class="text-center text-white mb-4">Contact Customer Support</h2>
+
+    <div id="responseMessage"></div>  <!-- Display AJAX response messages here -->
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <form id="contactForm" class="contact-form bg-black text-white p-4 rounded">
+                
+                <div class="mb-3">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control bg-dark text-white border-0" id="name" name="name" placeholder="Enter your name" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email address</label>
+                    <input type="email" class="form-control bg-dark text-white border-0" id="email" name="email" placeholder="Enter your email" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="subject" class="form-label">Subject</label>
+                    <input type="text" class="form-control bg-dark text-white border-0" id="subject" name="subject" placeholder="Enter subject" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="message" class="form-label">Message</label>
+                    <textarea class="form-control bg-dark text-white border-0" id="message" name="message" rows="5" placeholder="Write your message" required></textarea>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-outline-light btn-lg px-5">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#contactForm').on('submit', function(e) {
+            e.preventDefault();  // Prevent form from submitting the traditional way
+
+            // Collect form data
+            var name = $('#name').val();
+            var email = $('#email').val();
+            var subject = $('#subject').val();
+            var message = $('#message').val();
+            var csrfToken = '{{ csrf_token }}';  // CSRF token for security
+            $('#loadingOverlay1').show();
+            $.ajax({
+                url: '{% url "contact" %}',  // Django URL for handling the form
+                type: 'POST',
+                data: {
+                    'name': name,
+                    'email': email,
+                    'subject': subject,
+                    'message': message,
+                    'csrfmiddlewaretoken': csrfToken,  // Include CSRF token
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message
+                        $('#loadingOverlay1').hide();
+                        $('#responseMessage').html('<div class="alert alert-success">' + response.message + '</div>');
+                        $('#contactForm')[0].reset();  // Reset form on success
+                    } else {
+                        // Show error message
+                        $('#responseMessage').html('<div class="alert alert-danger">' + response.error + '</div>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Generic error message
+                    $('#loadingOverlay1').hide();
+                    $('#responseMessage').html('<div class="alert alert-danger">An error occurred. Please try again later.</div>');
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1060,3 +1060,48 @@ def reviewspage(request):
         'customer_reviews':customer_reviews
     }
     return render(request, 'reviewspage.html' , context) 
+
+
+
+def contact(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+
+        if name and email and subject and message:
+            html_message = f"""
+            <html>
+                <body style="font-family: Arial, sans-serif; padding: 20px;">
+                    <h2 style="color: #333;">New Contact Request from {name}</h2>
+                    <p><strong>Email:</strong> {email}</p>
+                    <p><strong>Subject:</strong> {subject}</p>
+                    <p><strong>Message:</strong> {message}</p>
+                    <p style="color: #666;">Please respond to this inquiry at your earliest convenience.</p>
+                </body>
+            </html>
+            """
+
+            # Fallback plain-text version for email clients that do not support HTML
+            plain_message = strip_tags(html_message)
+
+            # Send email to support team or admin
+            send_mail(
+                f"Customer Support Request: {subject}",
+                plain_message,  # Plain text version
+                EMAIL_HOST_USER,
+                ['aneesdeveloper038@gmail.com'],  # Replace with the support team's email
+                fail_silently=False,
+                html_message=html_message
+            )
+            return JsonResponse({'success': True, 'message': 'Your message has been sent successfully!'})
+        else:
+            return JsonResponse({'success': False, 'error': 'All fields are required.'})
+    else:
+        customerlogin = request.session.get('customer_id')
+        profile=Profile.objects.filter(customer=customerlogin)  
+        context = {
+        'profile': profile,
+        }  
+        return render(request , 'contact.html' ,context)    
